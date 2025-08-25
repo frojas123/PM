@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { Client } from '../types';
-import Modal from './shared/Modal';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-const newClientTemplate: Omit<Client, 'id'> = {
+const newClientTemplate = {
     legalName: '', fantasyName: '', status: 'Implementación', industry: '',
     connectionType: '', contractType: '', registrationDate: new Date().toISOString().split('T')[0],
     expectedGoLiveDate: '', actualGoLiveDate: null, licenses: 1, databaseName: '',
@@ -13,14 +11,14 @@ const newClientTemplate: Omit<Client, 'id'> = {
     checklistState: {},
 };
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const FormInput = ({ label, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }> = ({ label, children, ...props }) => (
+const FormSelect = ({ label, children, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
@@ -29,7 +27,7 @@ const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { lab
     </div>
 );
 
-const FormTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }> = ({ label, ...props }) => (
+const FormTextarea = ({ label, ...props }) => (
      <div className="col-span-1 md:col-span-2">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
@@ -37,8 +35,8 @@ const FormTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> &
 );
 
 
-const ClientEditModal: React.FC<{ isOpen: boolean; onClose: () => void; clientToEdit: Client | null; onSave: (client: Client) => void; }> = ({ isOpen, onClose, clientToEdit, onSave }) => {
-    const [formData, setFormData] = useState<Omit<Client, 'id'>>(newClientTemplate);
+const ClientEditModal = ({ isOpen, onClose, clientToEdit, onSave }) => {
+    const [formData, setFormData] = useState(newClientTemplate);
     const { data: appData } = useAppContext(); // get settings data from context
 
     useEffect(() => {
@@ -57,13 +55,13 @@ const ClientEditModal: React.FC<{ isOpen: boolean; onClose: () => void; clientTo
         }
     }, [clientToEdit, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = () => {
-        const clientData: Client = {
+        const clientData = {
             ...formData,
             id: clientToEdit?.id || `C${Date.now()}`,
         };

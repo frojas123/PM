@@ -1,19 +1,8 @@
 import React, { useState } from 'react';
-import { useAppContext } from '../contexts/AppContext';
-import { ConfigOption, ChecklistCategory, SettingsData } from '../types';
-import ConfigOptionEditModal from './ConfigOptionEditModal';
+import { useAppContext } from '../contexts/AppContext.js';
+import ConfigOptionEditModal from './ConfigOptionEditModal.js';
 
-type SettingsTab = 'statuses' | 'industries' | 'connections' | 'contracts' | 'emissionModels' | 'freezeReasons' | 'topicsPM' | 'topicsGeneral' | 'topicsEcommerce' | 'topicsAppPedido' | 'topicsKOS' | 'modules' | 'users' | 'checklists';
-
-interface ConfigListProps {
-    title: string;
-    items: ConfigOption[];
-    onEdit: (item: ConfigOption) => void;
-    onAdd: () => void;
-    onDelete: (item: ConfigOption) => void;
-}
-
-const ConfigList: React.FC<ConfigListProps> = ({ title, items, onEdit, onAdd, onDelete }) => {
+const ConfigList = ({ title, items, onEdit, onAdd, onDelete }) => {
     return (
         <div>
             <div className="flex justify-between items-center mb-4">
@@ -42,19 +31,16 @@ const ConfigList: React.FC<ConfigListProps> = ({ title, items, onEdit, onAdd, on
     );
 };
 
-const ChecklistConfig: React.FC<{ 
-    items: ChecklistCategory[];
-    onUpdate: (items: ChecklistCategory[]) => void;
-}> = ({ items, onUpdate }) => {
+const ChecklistConfig = ({ items, onUpdate }) => {
     // NOTE: Checklist editing still uses prompts for simplicity, could be upgraded to modals.
-    const handleEditCategoryTitle = (categoryId: string, currentTitle: string) => {
+    const handleEditCategoryTitle = (categoryId, currentTitle) => {
         const newTitle = prompt("Nuevo título para la categoría:", currentTitle);
         if (newTitle) {
             onUpdate(items.map(cat => cat.id === categoryId ? { ...cat, title: newTitle } : cat));
         }
     };
 
-    const handleEditItemLabel = (categoryId: string, itemId: string, currentLabel: string) => {
+    const handleEditItemLabel = (categoryId, itemId, currentLabel) => {
         const newLabel = prompt("Nuevo texto para la tarea:", currentLabel);
         if (newLabel) {
             onUpdate(items.map(cat => {
@@ -93,24 +79,24 @@ const ChecklistConfig: React.FC<{
     );
 };
 
-const Settings: React.FC = () => {
+const Settings = () => {
     const { data, updateSettings } = useAppContext();
-    const [activeTab, setActiveTab] = useState<SettingsTab>('statuses');
+    const [activeTab, setActiveTab] = useState('statuses');
     
     const [isModalOpen, setModalOpen] = useState(false);
-    const [editingOption, setEditingOption] = useState<{ listKey: keyof SettingsData, option: ConfigOption | null } | null>(null);
+    const [editingOption, setEditingOption] = useState(null);
 
-    const handleOpenModal = (listKey: keyof SettingsData, option: ConfigOption | null = null) => {
+    const handleOpenModal = (listKey, option = null) => {
         setEditingOption({ listKey, option });
         setModalOpen(true);
     };
 
-    const handleSaveOption = (updatedOption: ConfigOption) => {
+    const handleSaveOption = (updatedOption) => {
         if (!editingOption) return;
         const { listKey } = editingOption;
         
-        const list = data.settings[listKey] as ConfigOption[];
-        let updatedList: ConfigOption[];
+        const list = data.settings[listKey];
+        let updatedList;
 
         if (updatedOption.id.startsWith('new_')) {
             // It's a new item
@@ -126,16 +112,16 @@ const Settings: React.FC = () => {
         setEditingOption(null);
     };
 
-    const handleDeleteOption = (listKey: keyof SettingsData, optionToDelete: ConfigOption) => {
+    const handleDeleteOption = (listKey, optionToDelete) => {
          if (window.confirm(`¿Seguro que quieres eliminar "${optionToDelete.name}"?`)) {
-            const list = data.settings[listKey] as ConfigOption[];
+            const list = data.settings[listKey];
             const updatedList = list.filter(item => item.id !== optionToDelete.id);
             const newSettings = { ...data.settings, [listKey]: updatedList };
             updateSettings(newSettings);
         }
     }
 
-    const tabs: { id: SettingsTab; label: string }[] = [
+    const tabs = [
         { id: 'statuses', label: 'Estados Cliente' }, { id: 'industries', label: 'Rubros' },
         { id: 'connections', label: 'Tipos Conexión' }, { id: 'contracts', label: 'Tipos Contrato' },
         { id: 'emissionModels', label: 'Modelos Emisión' }, { id: 'freezeReasons', label: 'Motivos Congelación' },
@@ -145,8 +131,8 @@ const Settings: React.FC = () => {
         { id: 'users', label: 'Responsables' }, { id: 'checklists', label: 'Checklists' },
     ];
     
-    const renderConfigList = (listKey: keyof SettingsData, title: string) => {
-        const items = data.settings[listKey] as ConfigOption[];
+    const renderConfigList = (listKey, title) => {
+        const items = data.settings[listKey];
         return (
             <ConfigList 
                 title={title}

@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
-import { Client, KosDetails } from '../types';
-import Modal from './shared/Modal';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const FormInput = ({ label, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
@@ -12,9 +10,9 @@ const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label:
 );
 
 
-const KosEditModal: React.FC<{ isOpen: boolean; onClose: () => void; client: Client; }> = ({ isOpen, onClose, client }) => {
+const KosEditModal = ({ isOpen, onClose, client }) => {
     const { saveKosDetails } = useAppContext();
-    const [formData, setFormData] = useState<KosDetails>(client.kosDetails!);
+    const [formData, setFormData] = useState(client.kosDetails);
 
     useEffect(() => {
         if (isOpen && client.kosDetails) {
@@ -22,9 +20,9 @@ const KosEditModal: React.FC<{ isOpen: boolean; onClose: () => void; client: Cli
         }
     }, [client, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev!, [name]: name === 'licenses' ? Number(value) : value }));
+        setFormData(prev => ({ ...prev, [name]: name === 'licenses' ? Number(value) : value }));
     };
 
     const handleSubmit = () => {

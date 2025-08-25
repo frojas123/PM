@@ -1,24 +1,22 @@
-
 import React, { useMemo, useState } from 'react';
-import { useAppContext } from '../contexts/AppContext';
-import { Client, Training } from '../types';
-import KosEditModal from './KosEditModal';
+import { useAppContext } from '../contexts/AppContext.js';
+import KosEditModal from './KosEditModal.js';
 
-const Kos: React.FC = () => {
+const Kos = () => {
     const { data } = useAppContext();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [selectedClient, setSelectedClient] = useState(null);
 
 
     const kosClients = useMemo(() => {
         return data.clients.filter(c => c.kosDetails);
     }, [data.clients]);
 
-    const getTrainingsForClient = (clientId: string): Training[] => {
+    const getTrainingsForClient = (clientId) => {
         return data.trainings.filter(t => t.clientId === clientId && t.service === 'KOS');
     };
     
-    const handleEdit = (client: Client) => {
+    const handleEdit = (client) => {
         setSelectedClient(client);
         setEditModalOpen(true);
     };

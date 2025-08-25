@@ -1,17 +1,15 @@
-
 import React, { useState, useEffect } from 'react';
-import { Client, EcommerceDetails } from '../types';
-import Modal from './shared/Modal';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const FormInput = ({ label, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }> = ({ label, children, ...props }) => (
+const FormSelect = ({ label, children, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
@@ -20,9 +18,9 @@ const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { lab
     </div>
 );
 
-const EcommerceEditModal: React.FC<{ isOpen: boolean; onClose: () => void; client: Client; }> = ({ isOpen, onClose, client }) => {
+const EcommerceEditModal = ({ isOpen, onClose, client }) => {
     const { saveEcommerceDetails } = useAppContext();
-    const [formData, setFormData] = useState<EcommerceDetails>(client.ecommerceDetails!);
+    const [formData, setFormData] = useState(client.ecommerceDetails);
 
     useEffect(() => {
         if (isOpen && client.ecommerceDetails) {
@@ -30,9 +28,9 @@ const EcommerceEditModal: React.FC<{ isOpen: boolean; onClose: () => void; clien
         }
     }, [client, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev!, [name]: value }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = () => {

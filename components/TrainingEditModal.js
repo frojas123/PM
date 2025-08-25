@@ -1,17 +1,8 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import { Training } from '../types';
-import Modal from './shared/Modal';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-interface TrainingEditModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    trainingToEdit: Training | null;
-    onSave: (training: Training) => void;
-}
-
-const newTrainingTemplate: Omit<Training, 'id' | 'clientFantasyName'> = {
+const newTrainingTemplate = {
     clientId: '',
     type: 'General',
     service: 'General',
@@ -23,7 +14,7 @@ const newTrainingTemplate: Omit<Training, 'id' | 'clientFantasyName'> = {
     status: 'AGENDADA',
 };
 
-const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { label: string }> = ({ label, children, ...props }) => (
+const FormSelect = ({ label, children, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
@@ -32,22 +23,22 @@ const FormSelect: React.FC<React.SelectHTMLAttributes<HTMLSelectElement> & { lab
     </div>
 );
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const FormInput = ({ label, ...props }) => (
     <div className="col-span-1">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const FormTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }> = ({ label, ...props }) => (
+const FormTextarea = ({ label, ...props }) => (
      <div className="col-span-1 md:col-span-2">
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const TrainingEditModal: React.FC<TrainingEditModalProps> = ({ isOpen, onClose, trainingToEdit, onSave }) => {
-    const [formData, setFormData] = useState<Omit<Training, 'id' | 'clientFantasyName'>>(newTrainingTemplate);
+const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
+    const [formData, setFormData] = useState(newTrainingTemplate);
     const { data: appData } = useAppContext();
 
     useEffect(() => {
@@ -63,7 +54,7 @@ const TrainingEditModal: React.FC<TrainingEditModalProps> = ({ isOpen, onClose, 
         }
     }, [trainingToEdit, isOpen]);
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const handleChange = (e) => {
         const { name, value } = e.target;
         
         setFormData(prev => {
@@ -77,7 +68,7 @@ const TrainingEditModal: React.FC<TrainingEditModalProps> = ({ isOpen, onClose, 
     
     const handleSubmit = () => {
         const selectedClient = appData.clients.find(c => c.id === formData.clientId);
-        const trainingData: Training = {
+        const trainingData = {
             ...formData,
             id: trainingToEdit?.id || `T${Date.now()}`,
             clientFantasyName: selectedClient?.fantasyName || 'N/A',

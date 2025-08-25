@@ -1,23 +1,21 @@
-
 import React, { useMemo, useState } from 'react';
-import { useAppContext } from '../contexts/AppContext';
-import { Client, Training } from '../types';
-import AppPedidoEditModal from './AppPedidoEditModal';
+import { useAppContext } from '../contexts/AppContext.js';
+import AppPedidoEditModal from './AppPedidoEditModal.js';
 
-const AppPedido: React.FC = () => {
+const AppPedido = () => {
     const { data } = useAppContext();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [selectedClient, setSelectedClient] = useState(null);
 
     const appPedidoClients = useMemo(() => {
         return data.clients.filter(c => c.appPedidoDetails);
     }, [data.clients]);
     
-    const getTrainingsForClient = (clientId: string): Training[] => {
+    const getTrainingsForClient = (clientId) => {
         return data.trainings.filter(t => t.clientId === clientId && t.service === 'App Pedido');
     };
 
-    const handleEdit = (client: Client) => {
+    const handleEdit = (client) => {
         setSelectedClient(client);
         setEditModalOpen(true);
     };

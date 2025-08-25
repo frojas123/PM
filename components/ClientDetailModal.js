@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
-import { Client } from '../types';
-import Modal from './shared/Modal';
-import { generateClientSummary } from '../services/geminiService';
-import Spinner from './shared/Spinner';
+import Modal from './shared/Modal.js';
+import { generateClientSummary } from '../services/geminiService.js';
+import Spinner from './shared/Spinner.js';
 
-interface ClientDetailModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-    client: Client;
-}
-
-const DetailItem: React.FC<{ label: string; value?: string | number | null; isLink?: boolean }> = ({ label, value, isLink = false }) => (
+const DetailItem = ({ label, value, isLink = false }) => (
     <div>
         <p className="text-xs text-slate-400">{label}</p>
         {isLink && value ? 
@@ -20,9 +13,9 @@ const DetailItem: React.FC<{ label: string; value?: string | number | null; isLi
     </div>
 );
 
-const ClientDetailModal: React.FC<ClientDetailModalProps> = ({ isOpen, onClose, client }) => {
-    const [summary, setSummary] = useState<string>('');
-    const [isSummaryLoading, setSummaryLoading] = useState<boolean>(false);
+const ClientDetailModal = ({ isOpen, onClose, client }) => {
+    const [summary, setSummary] = useState('');
+    const [isSummaryLoading, setSummaryLoading] = useState(false);
 
     const handleGenerateSummary = async () => {
         setSummaryLoading(true);

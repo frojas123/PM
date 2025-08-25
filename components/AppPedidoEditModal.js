@@ -1,26 +1,24 @@
-
 import React, { useState, useEffect } from 'react';
-import { Client, AppPedidoDetails } from '../types';
-import Modal from './shared/Modal';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-const FormInput: React.FC<React.InputHTMLAttributes<HTMLInputElement> & { label: string }> = ({ label, ...props }) => (
+const FormInput = ({ label, ...props }) => (
     <div>
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const FormTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string }> = ({ label, ...props }) => (
+const FormTextarea = ({ label, ...props }) => (
      <div>
         <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
         <textarea {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
     </div>
 );
 
-const AppPedidoEditModal: React.FC<{ isOpen: boolean; onClose: () => void; client: Client; }> = ({ isOpen, onClose, client }) => {
+const AppPedidoEditModal = ({ isOpen, onClose, client }) => {
     const { saveAppPedidoDetails } = useAppContext();
-    const [formData, setFormData] = useState<AppPedidoDetails>(client.appPedidoDetails!);
+    const [formData, setFormData] = useState(client.appPedidoDetails);
     const [imeiText, setImeiText] = useState('');
 
     useEffect(() => {
@@ -30,12 +28,12 @@ const AppPedidoEditModal: React.FC<{ isOpen: boolean; onClose: () => void; clien
         }
     }, [client, isOpen]);
 
-    const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFormChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev!, [name]: Number(value) }));
+        setFormData(prev => ({ ...prev, [name]: Number(value) }));
     };
 
-    const handleImeiChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const handleImeiChange = (e) => {
         setImeiText(e.target.value);
     };
 

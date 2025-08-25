@@ -1,18 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './shared/Modal';
-import Spinner from './shared/Spinner';
-import { generateOverallClientAnalysis } from '../services/geminiService';
-import { useAppContext } from '../contexts/AppContext';
+import Modal from './shared/Modal.js';
+import Spinner from './shared/Spinner.js';
+import { generateOverallClientAnalysis } from '../services/geminiService.js';
+import { useAppContext } from '../contexts/AppContext.js';
 
-interface GeneralAnalysisModalProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-const GeneralAnalysisModal: React.FC<GeneralAnalysisModalProps> = ({ isOpen, onClose }) => {
+const GeneralAnalysisModal = ({ isOpen, onClose }) => {
     const { data } = useAppContext();
-    const [analysis, setAnalysis] = useState<string>('');
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [analysis, setAnalysis] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
