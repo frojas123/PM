@@ -5,6 +5,10 @@
     <link rel="icon" href="./favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PM Gestor Pro</title>
+
+    <!-- Local Stylesheet for Core Styling & Variables -->
+    <link rel="stylesheet" href="./style.css">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- Babel Standalone for JSX transpilation -->
@@ -14,11 +18,11 @@
         theme: {
           extend: {
             colors: {
-              'primary': '#2c3e50',
-              'secondary': '#34495e',
-              'accent': '#3498db',
-              'light': '#ecf0f1',
-              'dark': '#1e293b'
+              'primary': 'var(--color-primary)',
+              'secondary': 'var(--color-secondary)',
+              'accent': 'var(--color-accent)',
+              'light': 'var(--color-light)',
+              'dark': 'var(--color-dark)'
             }
           }
         }
@@ -35,8 +39,8 @@
 }
 </script>
 </head>
-  <body class="bg-primary">
+  <body>
     <div id="root"></div>
-    <script type="text/babel" data-type="module" src="./index.js"></script>
+    <script type="text/babel" data-presets="react" type="module" src="./index.js"></script>
   </body>
 </html>
