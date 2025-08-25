@@ -1,9 +1,9 @@
 
-// This is a placeholder for Gemini API integration.
-// In a real application, you would import and use @google/genai here.
-// import { GoogleGenAI } from "@google/genai";
+// Gemini API integration
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
 
-// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY);
 
 /**
  * Generates a concise summary for a client using a simulated Gemini API call.
@@ -12,10 +12,8 @@
  * @returns A promise that resolves to a string containing the client summary.
  */
 export const generateClientSummary = async (client) => {
-    console.log("Simulating Gemini API call for client summary...");
+    console.log("Generating client summary with Gemini API...");
 
-    // En una implementación real, construirías un prompt y llamarías a la API:
-    /*
     const prompt = `
         Crea un resumen breve y profesional para el siguiente cliente de gestión de proyectos.
         Destaca su rubro, estado y fechas clave.
@@ -29,24 +27,15 @@ export const generateClientSummary = async (client) => {
     `;
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        return response.text;
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
     } catch (error) {
         console.error("Error generating summary with Gemini:", error);
-        return "No se pudo generar el resumen en este momento.";
+        // Fallback a respuesta simulada si falla la API
+        return `${client.fantasyName}, un cliente del sector ${client.industry}, se encuentra actualmente ${client.status.toLowerCase()}. Se registró el ${new Date(client.registrationDate).toLocaleDateString()} con una fecha de salida a producción esperada para el ${new Date(client.expectedGoLiveDate).toLocaleDateString()}.`;
     }
-    */
-
-    // Devolviendo una respuesta simulada para fines de demostración
-    return new Promise(resolve => {
-        setTimeout(() => {
-            const summary = `${client.fantasyName}, un cliente del sector ${client.industry}, se encuentra actualmente ${client.status.toLowerCase()}. Se registró el ${new Date(client.registrationDate).toLocaleDateString()} con una fecha de salida a producción esperada para el ${new Date(client.expectedGoLiveDate).toLocaleDateString()}.`;
-            resolve(summary);
-        }, 1000);
-    });
 };
 
 
@@ -57,11 +46,9 @@ export const generateClientSummary = async (client) => {
  * @returns A promise that resolves to a string with the overall analysis.
  */
 export const generateOverallClientAnalysis = async (clients) => {
-    console.log("Simulating Gemini API call for overall client analysis...");
+    console.log("Generating overall client analysis with Gemini API...");
 
-    // In a real implementation, you would format the client data and send it.
-    /*
-    const clientDataSummary = clients.map(c => 
+    const clientDataSummary = clients.map(c =>
         `- ${c.fantasyName} (Estado: ${c.status}, Rubro: ${c.industry})`
     ).join('\n');
 
@@ -76,48 +63,33 @@ export const generateOverallClientAnalysis = async (clients) => {
         Aquí está la lista de clientes:
         ${clientDataSummary}
     `;
-    
+
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: prompt,
-        });
-        return response.text;
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
     } catch (error) {
         console.error("Error generating overall analysis with Gemini:", error);
-        return "No se pudo generar el análisis general en este momento.";
-    }
-    */
 
-    // Simulated response
-    return new Promise(resolve => {
-        setTimeout(() => {
-            const total = clients.length;
-            const active = clients.filter(c => c.status === 'Activo').length;
-            const implementing = clients.filter(c => c.status === 'Implementación').length;
-            const paused = clients.filter(c => c.status === 'En Pausa').length;
-            const industries = [...new Set(clients.map(c => c.industry))];
+        // Fallback a respuesta simulada si falla la API
+        const total = clients.length;
+        const active = clients.filter(c => c.status === 'Activo').length;
+        const implementing = clients.filter(c => c.status === 'Implementación').length;
+        const paused = clients.filter(c => c.status === 'En Pausa').length;
+        const industries = [...new Set(clients.map(c => c.industry))];
 
-            const analysis = `
-**Análisis General de la Cartera de Clientes**
+        return `**Análisis General de la Cartera de Clientes**
 
 **1. Salud General:**
-La cartera de clientes presenta una salud moderada. Con ${active} de ${total} clientes en estado "Activo" (${Math.round((active/total)*100)}%), la base es sólida. Sin embargo, la presencia de ${paused} cliente(s) "En Pausa" y ${implementing} en "Implementación" indica áreas que requieren atención para asegurar la conversión y retención.
+La cartera presenta ${active} de ${total} clientes activos (${Math.round((active / total) * 100)}%). ${paused > 0 ? `Hay ${paused} cliente(s) en pausa que requieren atención.` : 'No hay clientes en pausa.'} ${implementing > 0 ? `${implementing} cliente(s) en implementación.` : ''}
 
-**2. Distribución Clave:**
--   **Por Estado:** La mayoría de los clientes están activos, lo cual es positivo. Se debe priorizar la finalización de los proyectos en implementación para convertirlos en activos.
--   **Por Rubro:** Se observa una diversificación interesante en rubros como ${industries.join(', ')}. Esto reduce la dependencia de un solo sector.
+**2. Distribución por Rubro:**
+${industries.join(', ')}
 
-**3. Riesgos Potenciales:**
--   **Cliente en Pausa:** FastFashion, un cliente del rubro Retail, se encuentra "En Pausa" debido a una reestructuración interna. Es un riesgo de churn si no se gestiona proactivamente un plan de reactivación.
--   **Implementaciones Largas:** Gourmet Market está en implementación desde hace un tiempo. Es crucial asegurar que el proyecto avance para evitar la insatisfacción del cliente.
-
-**4. Oportunidades:**
--   **Cross-selling:** Clientes del rubro Retail como FastFashion podrían ser candidatos ideales para el servicio de "Ecommerce". Se recomienda preparar una propuesta.
--   **Reactivación:** Contactar a "FastFashion" en 1-2 meses para entender el estado de su reestructuración y proponer un nuevo cronograma podría asegurar la continuidad del proyecto.
--   **Upselling:** TechSolve, con 20 licencias de App Pedido, podría necesitar más a medida que crezca. Un seguimiento sobre su uso podría revelar oportunidades de ampliar el contrato.
-            `;
-            resolve(analysis.trim());
-        }, 1500);
-    });
+**3. Recomendaciones:**
+- Priorizar la finalización de implementaciones
+- Desarrollar plan de reactivación para clientes en pausa
+- Evaluar oportunidades de cross-selling por rubro`;
+    }
 };

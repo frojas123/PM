@@ -2,19 +2,48 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# PM Gestor Pro
 
-This contains everything you need to run your app locally.
+Sistema de gestión integral para proyectos y clientes con análisis inteligente.
 
 View your app in AI Studio: https://ai.studio/apps/drive/1Mxb4eDzfauMSoReuiJkM9Zh5yHJT_eNL
 
-## Run Locally
+## 🚀 Deployment en GitHub Pages
 
-**Prerequisites:**  Node.js
+Este proyecto está configurado para deployment automático en GitHub Pages.
 
+**Ver la aplicación desplegada:** `https://[tu-usuario].github.io/pm-gestor-pro/`
+
+### Configuración rápida:
+
+1. **Sube el código a GitHub**
+2. **Ve a Settings > Pages en tu repositorio**
+3. **Selecciona "GitHub Actions" como source**
+4. **Configura tu `GEMINI_API_KEY` en Secrets**
+
+¡El deployment será automático en cada push a main!
+
+📖 **[Ver guía completa de deployment](DEPLOYMENT.md)**
+
+## 🛠️ Desarrollo Local
+
+**Prerequisites:** Node.js
 
 1. Install dependencies:
-   `npm install`
+   ```bash
+   npm install
+   ```
+
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+
 3. Run the app:
-   `npm run dev`
+   ```bash
+   npm run dev
+   ```
+
+## 📦 Scripts Disponibles
+
+- `npm run dev` - Servidor de desarrollo
+- `npm run build` - Build para producción
+- `npm run preview` - Preview del build
+- `npm run deploy` - Deploy manual a GitHub Pages
