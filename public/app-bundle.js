@@ -5,7 +5,7 @@ const { createRoot } = ReactDOM;
 // Add global styles for better contrast
 const addGlobalStyles = () => {
     if (document.getElementById('pm-global-styles')) return;
-    
+
     const style = document.createElement('style');
     style.id = 'pm-global-styles';
     style.textContent = `
@@ -13,8 +13,8 @@ const addGlobalStyles = () => {
         body select,
         div select,
         form select {
-            background-color: #374151 !important;
-            color: #F9FAFB !important;
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
             border: 2px solid #6B7280 !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
@@ -24,7 +24,7 @@ const addGlobalStyles = () => {
         body select:focus,
         div select:focus,
         form select:focus {
-            background-color: #4B5563 !important;
+            background-color: #F3F4F6 !important;
             border-color: #10B981 !important;
             outline: none !important;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
@@ -34,8 +34,8 @@ const addGlobalStyles = () => {
         body select option,
         div select option,
         form select option {
-            background-color: #374151 !important;
-            color: #F9FAFB !important;
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
             padding: 8px 12px !important;
             border: none !important;
         }
@@ -45,7 +45,7 @@ const addGlobalStyles = () => {
         body select option:checked,
         body select option[selected] {
             background-color: #10B981 !important;
-            color: #1F2937 !important;
+            color: #FFFFFF !important;
         }
         
         /* Input styling improvements with highest specificity */
@@ -61,8 +61,8 @@ const addGlobalStyles = () => {
         div input[type="date"], 
         div input[type="datetime-local"], 
         div textarea {
-            background-color: #4B5563 !important;
-            color: #F9FAFB !important;
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
             border: 2px solid #6B7280 !important;
         }
         
@@ -70,7 +70,7 @@ const addGlobalStyles = () => {
         body textarea::placeholder,
         div input::placeholder, 
         div textarea::placeholder {
-            color: #9CA3AF !important;
+            color: #6B7280 !important;
             opacity: 1 !important;
         }
         
@@ -78,7 +78,7 @@ const addGlobalStyles = () => {
         body textarea:focus,
         div input:focus, 
         div textarea:focus {
-            background-color: #374151 !important;
+            background-color: #F9FAFB !important;
             border-color: #10B981 !important;
             outline: none !important;
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
@@ -95,9 +95,15 @@ const addGlobalStyles = () => {
             right: 12px;
             top: 50%;
             transform: translateY(-50%);
-            color: #9CA3AF;
+            color: #374151;
             pointer-events: none;
             font-size: 12px;
+        }
+        
+        /* Additional fallback for stubborn browsers */
+        select * {
+            background-color: #FFFFFF !important;
+            color: #1F2937 !important;
         }
     `;
     document.head.appendChild(style);
@@ -781,8 +787,8 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     type="button"
                     onClick={() => setActiveTab('details')}
                     className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === 'details'
-                            ? 'border-accent text-accent'
-                            : 'border-transparent text-light/70 hover:text-light'
+                        ? 'border-accent text-accent'
+                        : 'border-transparent text-light/70 hover:text-light'
                         }`}
                 >
                     Detalles del Cliente
@@ -792,8 +798,8 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                         type="button"
                         onClick={() => setActiveTab('history')}
                         className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === 'history'
-                                ? 'border-accent text-accent'
-                                : 'border-transparent text-light/70 hover:text-light'
+                            ? 'border-accent text-accent'
+                            : 'border-transparent text-light/70 hover:text-light'
                             }`}
                     >
                         Historial de Capacitaciones ({clientTrainings.length})
@@ -1001,10 +1007,10 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                                         </div>
                                         <div className="text-right">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
-                                                    training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
-                                                        training.status === 'EN PROCESO' ? 'bg-yellow-400/20 text-yellow-400' :
-                                                            training.status === 'REAGENDADA' ? 'bg-orange-400/20 text-orange-400' :
-                                                                'bg-red-400/20 text-red-400'
+                                                training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
+                                                    training.status === 'EN PROCESO' ? 'bg-yellow-400/20 text-yellow-400' :
+                                                        training.status === 'REAGENDADA' ? 'bg-orange-400/20 text-orange-400' :
+                                                            'bg-red-400/20 text-red-400'
                                                 }`}>
                                                 {training.status}
                                             </span>
