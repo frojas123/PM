@@ -9,16 +9,28 @@ const addGlobalStyles = () => {
     const style = document.createElement('style');
     style.id = 'pm-global-styles';
     style.textContent = `
-        /* Force better contrast for all select elements with highest specificity */
+        /* NUCLEAR OPTION - MAXIMUM SPECIFICITY FOR ALL SELECTS */
+        html body div.flex div select,
+        html body div.space-y-4 select,
+        html body div.grid select,
+        html body main select,
+        html body form select,
+        html body div select,
+        html body select,
         body select,
         div select,
-        form select {
+        form select,
+        select,
+        * select {
             background-color: #FFFFFF !important;
             color: #1F2937 !important;
             border: 2px solid #6B7280 !important;
             -webkit-appearance: none !important;
             -moz-appearance: none !important;
             appearance: none !important;
+            font-size: 14px !important;
+            padding: 8px 12px !important;
+            border-radius: 6px !important;
         }
         
         body select:focus,
@@ -30,10 +42,20 @@ const addGlobalStyles = () => {
             box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
         }
         
-        /* Ensure option elements have proper styling with highest specificity */
+        /* NUCLEAR OPTION - MAXIMUM SPECIFICITY FOR ALL OPTIONS */
+        html body div.flex div select option,
+        html body div.space-y-4 select option,
+        html body div.grid select option,
+        html body main select option,
+        html body form select option,
+        html body div select option,
+        html body select option,
         body select option,
         div select option,
-        form select option {
+        form select option,
+        select option,
+        * select option,
+        option {
             background-color: #FFFFFF !important;
             color: #1F2937 !important;
             padding: 8px 12px !important;
@@ -109,31 +131,57 @@ const addGlobalStyles = () => {
     document.head.appendChild(style);
 };
 
-// Apply styles when DOM is ready and force them periodically
+// NUCLEAR OPTION - FORCE STYLES WITH MAXIMUM AGGRESSION
 const forceStyles = () => {
     addGlobalStyles();
     
-    // Force styles on all existing select elements
+    // FORCE ALL SELECTS WITH MAXIMUM SPECIFICITY
     const selects = document.querySelectorAll('select');
     selects.forEach(select => {
-        select.style.backgroundColor = '#FFFFFF';
-        select.style.color = '#1F2937';
-        select.style.border = '2px solid #6B7280';
+        // Use setProperty with important flag
+        select.style.setProperty('background-color', '#FFFFFF', 'important');
+        select.style.setProperty('color', '#1F2937', 'important');
+        select.style.setProperty('border', '2px solid #6B7280', 'important');
+        select.style.setProperty('padding', '8px 12px', 'important');
+        select.style.setProperty('border-radius', '6px', 'important');
+        select.style.setProperty('font-size', '14px', 'important');
+        select.style.setProperty('-webkit-appearance', 'none', 'important');
+        select.style.setProperty('-moz-appearance', 'none', 'important');
+        select.style.setProperty('appearance', 'none', 'important');
         
-        // Force styles on options
+        // FORCE ALL OPTIONS WITH MAXIMUM SPECIFICITY
         const options = select.querySelectorAll('option');
         options.forEach(option => {
-            option.style.backgroundColor = '#FFFFFF';
-            option.style.color = '#1F2937';
+            option.style.setProperty('background-color', '#FFFFFF', 'important');
+            option.style.setProperty('color', '#1F2937', 'important');
+            option.style.setProperty('padding', '8px 12px', 'important');
         });
     });
     
-    // Force styles on all inputs
-    const inputs = document.querySelectorAll('input, textarea');
+    // FORCE ALL INPUTS WITH MAXIMUM SPECIFICITY
+    const inputs = document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea');
     inputs.forEach(input => {
-        input.style.backgroundColor = '#FFFFFF';
-        input.style.color = '#1F2937';
-        input.style.border = '2px solid #6B7280';
+        input.style.setProperty('background-color', '#FFFFFF', 'important');
+        input.style.setProperty('color', '#1F2937', 'important');
+        input.style.setProperty('border', '2px solid #6B7280', 'important');
+        input.style.setProperty('padding', '8px 12px', 'important');
+        input.style.setProperty('border-radius', '6px', 'important');
+        input.style.setProperty('font-size', '14px', 'important');
+    });
+    
+    // FORCE FOCUS STATES
+    document.querySelectorAll('select, input, textarea').forEach(element => {
+        element.addEventListener('focus', function() {
+            this.style.setProperty('background-color', '#F9FAFB', 'important');
+            this.style.setProperty('border-color', '#10B981', 'important');
+            this.style.setProperty('outline', 'none', 'important');
+            this.style.setProperty('box-shadow', '0 0 0 3px rgba(16, 185, 129, 0.1)', 'important');
+        });
+        
+        element.addEventListener('blur', function() {
+            this.style.setProperty('background-color', '#FFFFFF', 'important');
+            this.style.setProperty('border-color', '#6B7280', 'important');
+        });
     });
 };
 
@@ -144,8 +192,43 @@ if (document.readyState === 'loading') {
     forceStyles();
 }
 
-// Force styles every 2 seconds to catch dynamically created elements
-setInterval(forceStyles, 2000);
+// AGGRESSIVE FORCING - Multiple strategies
+setInterval(forceStyles, 1000); // Every second instead of 2
+
+// MUTATION OBSERVER - Catch any DOM changes
+if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+        let shouldForce = false;
+        mutations.forEach(mutation => {
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) { // Element node
+                        if (node.tagName === 'SELECT' || node.tagName === 'INPUT' || node.tagName === 'TEXTAREA' ||
+                            node.querySelector && (node.querySelector('select') || node.querySelector('input') || node.querySelector('textarea'))) {
+                            shouldForce = true;
+                        }
+                    }
+                });
+            }
+        });
+        if (shouldForce) {
+            setTimeout(forceStyles, 100); // Small delay to ensure elements are fully rendered
+        }
+    });
+    
+    // Start observing
+    observer.observe(document.body || document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+}
+
+// ADDITIONAL EVENT LISTENERS
+document.addEventListener('click', () => setTimeout(forceStyles, 100));
+document.addEventListener('change', () => setTimeout(forceStyles, 100));
+window.addEventListener('resize', () => setTimeout(forceStyles, 100));
 
 // Check if Recharts is available
 const isRechartsAvailable = () => {
