@@ -2,27 +2,18 @@
 const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
 const { createRoot } = ReactDOM;
 
-// Safely access Recharts components
-const getRechartsComponents = () => {
-    if (typeof Recharts !== 'undefined') {
-        return {
-            PieChart: Recharts.PieChart,
-            Pie: Recharts.Pie,
-            Cell: Recharts.Cell,
-            BarChart: Recharts.BarChart,
-            Bar: Recharts.Bar,
-            XAxis: Recharts.XAxis,
-            YAxis: Recharts.YAxis,
-            CartesianGrid: Recharts.CartesianGrid,
-            Tooltip: Recharts.Tooltip,
-            Legend: Recharts.Legend,
-            ResponsiveContainer: Recharts.ResponsiveContainer
-        };
-    }
-    return {};
+// Check if Recharts is available
+const isRechartsAvailable = () => {
+    return typeof window !== 'undefined' && typeof window.Recharts !== 'undefined';
 };
 
-const { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = getRechartsComponents();
+// Get Recharts components safely
+const getRechartsComponent = (componentName) => {
+    if (isRechartsAvailable()) {
+        return window.Recharts[componentName];
+    }
+    return null;
+};
 
 // Constants
 const navItems = [
@@ -423,26 +414,27 @@ const Dashboard = () => {
                 {/* Status Chart */}
                 <div className="bg-secondary/20 p-6 rounded-lg border border-secondary/30">
                     <h3 className="text-lg font-semibold text-light mb-4">Estado de Clientes</h3>
-                    {typeof Recharts !== 'undefined' && PieChart ? (
-                        <ResponsiveContainer width="100%" height={250}>
-                            <PieChart>
-                                <Pie
-                                    data={statusData}
-                                    cx="50%"
-                                    cy="50%"
-                                    labelLine={false}
-                                    label={({ name, percentage }) => `${name} ${percentage}%`}
-                                    outerRadius={80}
-                                    fill="#8884d8"
-                                    dataKey="value"
-                                >
-                                    {statusData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
-                        </ResponsiveContainer>
+                    {isRechartsAvailable() ? (
+                        React.createElement(getRechartsComponent('ResponsiveContainer'), { width: "100%", height: 250 },
+                            React.createElement(getRechartsComponent('PieChart'), {},
+                                React.createElement(getRechartsComponent('Pie'), {
+                                    data: statusData,
+                                    cx: "50%",
+                                    cy: "50%",
+                                    labelLine: false,
+                                    label: ({ name, percentage }) => `${name} ${percentage}%`,
+                                    outerRadius: 80,
+                                    fill: "#8884d8",
+                                    dataKey: "value"
+                                }, statusData.map((entry, index) => 
+                                    React.createElement(getRechartsComponent('Cell'), { 
+                                        key: `cell-${index}`, 
+                                        fill: COLORS[index % COLORS.length] 
+                                    })
+                                )),
+                                React.createElement(getRechartsComponent('Tooltip'), {})
+                            )
+                        )
                     ) : (
                         <div className="h-[250px] flex items-center justify-center text-light/50">
                             <div className="text-center">
@@ -485,23 +477,23 @@ const Dashboard = () => {
                 {/* Training Trends */}
                 <div className="bg-secondary/20 p-6 rounded-lg border border-secondary/30">
                     <h3 className="text-lg font-semibold text-light mb-4">Tendencia de Capacitaciones</h3>
-                    {typeof Recharts !== 'undefined' && BarChart ? (
-                        <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={trainingTrendData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                <XAxis dataKey="month" stroke="#9CA3AF" />
-                                <YAxis stroke="#9CA3AF" />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: '#1F2937',
+                    {isRechartsAvailable() ? (
+                        React.createElement(getRechartsComponent('ResponsiveContainer'), { width: "100%", height: 250 },
+                            React.createElement(getRechartsComponent('BarChart'), { data: trainingTrendData },
+                                React.createElement(getRechartsComponent('CartesianGrid'), { strokeDasharray: "3 3", stroke: "#374151" }),
+                                React.createElement(getRechartsComponent('XAxis'), { dataKey: "month", stroke: "#9CA3AF" }),
+                                React.createElement(getRechartsComponent('YAxis'), { stroke: "#9CA3AF" }),
+                                React.createElement(getRechartsComponent('Tooltip'), { 
+                                    contentStyle: { 
+                                        backgroundColor: '#1F2937', 
                                         border: '1px solid #374151',
                                         borderRadius: '8px'
-                                    }}
-                                />
-                                <Bar dataKey="completed" fill="#10B981" name="Completadas" />
-                                <Bar dataKey="scheduled" fill="#F59E0B" name="Programadas" />
-                            </BarChart>
-                        </ResponsiveContainer>
+                                    }
+                                }),
+                                React.createElement(getRechartsComponent('Bar'), { dataKey: "completed", fill: "#10B981", name: "Completadas" }),
+                                React.createElement(getRechartsComponent('Bar'), { dataKey: "scheduled", fill: "#F59E0B", name: "Programadas" })
+                            )
+                        )
                     ) : (
                         <div className="h-[250px] flex items-center justify-center text-light/50">
                             <div className="text-center">
@@ -533,8 +525,8 @@ const Dashboard = () => {
                                     </div>
                                     <div className="text-right">
                                         <div className={`text-xs px-2 py-1 rounded-full ${client.status === 'Activo' ? 'bg-green-400/20 text-green-400' :
-                                                client.status === 'Implementación' ? 'bg-yellow-400/20 text-yellow-400' :
-                                                    'bg-gray-400/20 text-gray-400'
+                                            client.status === 'Implementación' ? 'bg-yellow-400/20 text-yellow-400' :
+                                                'bg-gray-400/20 text-gray-400'
                                             }`}>
                                             {client.status}
                                         </div>
@@ -1437,8 +1429,8 @@ const Calendar = () => {
                                             <div className="flex justify-between items-start mb-2">
                                                 <h4 className="text-sm font-medium text-light">{training.topic}</h4>
                                                 <span className={`text-xs px-2 py-1 rounded-full ${training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
-                                                        training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
-                                                            'bg-yellow-400/20 text-yellow-400'
+                                                    training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
+                                                        'bg-yellow-400/20 text-yellow-400'
                                                     }`}>
                                                     {training.status}
                                                 </span>
@@ -1489,8 +1481,8 @@ const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
                             key={item.id}
                             onClick={() => setActiveView(item.id)}
                             className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${activeView === item.id
-                                    ? 'bg-accent text-primary'
-                                    : 'text-light hover:bg-primary/20'
+                                ? 'bg-accent text-primary'
+                                : 'text-light hover:bg-primary/20'
                                 }`}
                         >
                             <span className="w-5 h-5 flex items-center justify-center">
