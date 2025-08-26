@@ -12,6 +12,7 @@ const newTrainingTemplate = {
     duration: 60,
     notes: '',
     status: 'AGENDADA',
+    priority: 'Media'
 };
 
 const FormSelect = ({ label, children, ...props }) => (
@@ -59,9 +60,32 @@ const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
         
         setFormData(prev => {
             const newState = { ...prev, [name]: value };
-            if (name === 'type' || name === 'service') {
+            
+            // Resetear tema cuando cambia el servicio
+            if (name === 'service') {
                 newState.topic = '';
             }
+            
+            // Auto-completar duración cuando se selecciona un tema
+            if (name === 'topic') {
+                const selectedTopic = appData.settings?.trainingTopics?.find(t => t.name === value);
+                if (selectedTopic && selectedTopic.duration) {
+                    newState.duration = selectedTopic.duration;
+                }
+                if (selectedTopic && selectedTopic.priority) {
+                    newState.priority = selectedTopic.priority;
+                }
+            }
+            
+            // Auto-completar duración por defecto cuando cambia el tipo
+            if (name === 'type') {
+                const selectedType = appData.settings?.trainingTypes?.find(t => t.name === value);
+                if (selectedType && selectedType.defaultDuration) {
+                    newState.duration = selectedType.defaultDuration;
+                }
+                newState.topic = '';
+            }
+            
             return newState;
         });
     };
@@ -78,23 +102,17 @@ const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
     };
 
     const topicOptions = useMemo(() => {
-        if (!appData) return [];
-        if (formData.type === 'PM') {
-            return appData.settings.trainingTopicsPM;
-        }
+        if (!appData?.settings?.trainingTopics) return [];
+        
+        // Filtrar temas por servicio seleccionado
+        return appData.settings.trainingTopics.filter(topic => 
+            topic.service === formData.service
+        );
+    }, [appData, formData.service]);
 
-        switch(formData.service) {
-            case 'Ecommerce':
-                return appData.settings.trainingTopicsEcommerce;
-            case 'App Pedido':
-                return appData.settings.trainingTopicsAppPedido;
-            case 'KOS':
-                return appData.settings.trainingTopicsKOS;
-            case 'General':
-            default:
-                return appData.settings.trainingTopicsGeneral;
-        }
-    }, [appData, formData.type, formData.service]);
+    const selectedTopic = useMemo(() => {
+        return appData?.settings?.trainingTopics?.find(t => t.name === formData.topic);
+    }, [appData, formData.topic]);
 
     return (
         <Modal 
@@ -109,39 +127,59 @@ const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
             }
         >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <FormSelect label="Cliente" name="clientId" value={formData.clientId} onChange={handleChange} className="md:col-span-2">
+                <FormSelect label="Cliente" name="clientId" value={formData.clientId} onChange={handleChange} className="md:col-span-2">
                     <option value="">Seleccione un cliente</option>
                     {appData.clients.map(c => <option key={c.id} value={c.id}>{c.fantasyName}</option>)}
                 </FormSelect>
                 
                 <FormSelect label="Tipo de Capacitación" name="type" value={formData.type} onChange={handleChange}>
-                    <option value="General">General</option>
-                    <option value="PM">PM</option>
+                    <option value="">Seleccione un tipo</option>
+                    {appData.settings?.trainingTypes?.map(t => (
+                        <option key={t.id} value={t.name}>{t.name} - {t.description}</option>
+                    ))}
                 </FormSelect>
 
                 <FormSelect label="Servicio" name="service" value={formData.service} onChange={handleChange}>
-                    <option value="General">General</option>
-                    <option value="Ecommerce">Ecommerce</option>
-                    <option value="App Pedido">App Pedido</option>
-                    <option value="KOS">KOS</option>
+                    <option value="">Seleccione un servicio</option>
+                    {appData.settings?.trainingServices?.map(s => (
+                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
+                    ))}
                 </FormSelect>
                 
-                <FormSelect label="Tema" name="topic" value={formData.topic} onChange={handleChange} className="md:col-span-2">
-                    <option value="">Seleccione un tema</option>
-                    {topicOptions?.map(t => <option key={t.id} value={t.name}>{t.name}</option>)}
-                </FormSelect>
+                <div className="md:col-span-2">
+                    <FormSelect label="Tema" name="topic" value={formData.topic} onChange={handleChange}>
+                        <option value="">Seleccione un tema</option>
+                        {topicOptions?.map(t => (
+                            <option key={t.id} value={t.name}>
+                                {t.name} ({t.duration} min - {t.priority})
+                            </option>
+                        ))}
+                    </FormSelect>
+                    {selectedTopic && (
+                        <div className="mt-2 p-2 bg-primary rounded text-sm text-slate-300">
+                            <div className="flex justify-between">
+                                <span>Duración sugerida: <strong>{selectedTopic.duration} min</strong></span>
+                                <span className={`font-semibold ${
+                                    selectedTopic.priority === 'Alta' ? 'text-red-400' :
+                                    selectedTopic.priority === 'Media' ? 'text-yellow-400' : 'text-green-400'
+                                }`}>
+                                    Prioridad: {selectedTopic.priority}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
                 
                 <FormSelect label="Responsable" name="responsible" value={formData.responsible} onChange={handleChange}>
                      <option value="">Seleccione responsable</option>
-                     {appData.settings.users.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                     {appData.settings?.users?.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
                 </FormSelect>
 
                 <FormSelect label="Estado" name="status" value={formData.status} onChange={handleChange}>
-                    <option value="AGENDADA">Agendada</option>
-                    <option value="EN PROCESO">En Proceso</option>
-                    <option value="REAGENDADA">Reagendada</option>
-                    <option value="CANCELADA">Cancelada</option>
-                    <option value="COMPLETADA">Completada</option>
+                    <option value="">Seleccione un estado</option>
+                    {appData.settings?.trainingStatuses?.map(s => (
+                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
+                    ))}
                 </FormSelect>
 
                 <FormInput label="Fecha y Hora" name="dateTime" type="datetime-local" value={formData.dateTime} onChange={handleChange} />

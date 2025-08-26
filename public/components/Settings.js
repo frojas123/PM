@@ -125,9 +125,9 @@ const Settings = () => {
         { id: 'statuses', label: 'Estados Cliente' }, { id: 'industries', label: 'Rubros' },
         { id: 'connections', label: 'Tipos Conexión' }, { id: 'contracts', label: 'Tipos Contrato' },
         { id: 'emissionModels', label: 'Modelos Emisión' }, { id: 'freezeReasons', label: 'Motivos Congelación' },
-        { id: 'topicsPM', label: 'Temas Cap. PM' }, { id: 'topicsGeneral', label: 'Temas Cap. General' },
-        { id: 'topicsEcommerce', label: 'Temas Ecommerce' }, { id: 'topicsAppPedido', label: 'Temas App Pedido' },
-        { id: 'topicsKOS', label: 'Temas KOS' }, { id: 'modules', label: 'Módulos Sistema' },
+        { id: 'trainingTypes', label: 'Tipos Capacitación' }, { id: 'trainingServices', label: 'Servicios Cap.' },
+        { id: 'trainingTopics', label: 'Temas Capacitación' }, { id: 'trainingStatuses', label: 'Estados Cap.' },
+        { id: 'trainingPriorities', label: 'Prioridades Cap.' }, { id: 'modules', label: 'Módulos Sistema' },
         { id: 'users', label: 'Responsables' }, { id: 'checklists', label: 'Checklists' },
     ];
     
@@ -152,11 +152,11 @@ const Settings = () => {
             case 'contracts': return renderConfigList('contractTypes', 'Tipos de Contrato');
             case 'emissionModels': return renderConfigList('emissionModels', 'Modelos de Emisión');
             case 'freezeReasons': return renderConfigList('freezeReasons', 'Motivos de Congelación');
-            case 'topicsPM': return renderConfigList('trainingTopicsPM', 'Temas Cap. PM');
-            case 'topicsGeneral': return renderConfigList('trainingTopicsGeneral', 'Temas Cap. General');
-            case 'topicsEcommerce': return renderConfigList('trainingTopicsEcommerce', 'Temas Ecommerce');
-            case 'topicsAppPedido': return renderConfigList('trainingTopicsAppPedido', 'Temas App Pedido');
-            case 'topicsKOS': return renderConfigList('trainingTopicsKOS', 'Temas KOS');
+            case 'trainingTypes': return renderConfigList('trainingTypes', 'Tipos de Capacitación');
+            case 'trainingServices': return renderConfigList('trainingServices', 'Servicios de Capacitación');
+            case 'trainingTopics': return renderConfigList('trainingTopics', 'Temas de Capacitación');
+            case 'trainingStatuses': return renderConfigList('trainingStatuses', 'Estados de Capacitación');
+            case 'trainingPriorities': return renderConfigList('trainingPriorities', 'Prioridades de Capacitación');
             case 'modules': return renderConfigList('systemModules', 'Módulos del Sistema');
             case 'users': return renderConfigList('users', 'Responsables / Usuarios');
             case 'checklists': return <ChecklistConfig items={data.settings.checklistData} onUpdate={(val) => updateSettings({ ...data.settings, checklistData: val })} />;
