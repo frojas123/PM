@@ -1,7 +1,6 @@
 
-import React from 'react';
-
-export const navItems = [
+// Definir navItems como variable global
+const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <i className="fas fa-chart-pie"></i> },
     { id: 'clients', label: 'Clientes', icon: <i className="fas fa-users"></i> },
     { id: 'trainings', label: 'Capacitaciones', icon: <i className="fas fa-chalkboard-teacher"></i> },
