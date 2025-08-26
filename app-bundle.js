@@ -321,12 +321,13 @@ const Dashboard = () => {
                     <select
                         value={selectedPeriod}
                         onChange={(e) => setSelectedPeriod(e.target.value)}
-                        className="px-3 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light text-sm focus:outline-none focus:border-accent"
+                        className="px-3 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light text-sm focus:outline-none focus:border-accent focus:bg-secondary"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
-                        <option value="week">Esta Semana</option>
-                        <option value="month">Este Mes</option>
-                        <option value="quarter">Este Trimestre</option>
-                        <option value="year">Este Año</option>
+                        <option value="week" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Esta Semana</option>
+                        <option value="month" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Este Mes</option>
+                        <option value="quarter" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Este Trimestre</option>
+                        <option value="year" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Este Año</option>
                     </select>
                     <button
                         onClick={refreshData}
@@ -426,10 +427,10 @@ const Dashboard = () => {
                                     outerRadius: 80,
                                     fill: "#8884d8",
                                     dataKey: "value"
-                                }, statusData.map((entry, index) => 
-                                    React.createElement(getRechartsComponent('Cell'), { 
-                                        key: `cell-${index}`, 
-                                        fill: COLORS[index % COLORS.length] 
+                                }, statusData.map((entry, index) =>
+                                    React.createElement(getRechartsComponent('Cell'), {
+                                        key: `cell-${index}`,
+                                        fill: COLORS[index % COLORS.length]
                                     })
                                 )),
                                 React.createElement(getRechartsComponent('Tooltip'), {})
@@ -483,9 +484,9 @@ const Dashboard = () => {
                                 React.createElement(getRechartsComponent('CartesianGrid'), { strokeDasharray: "3 3", stroke: "#374151" }),
                                 React.createElement(getRechartsComponent('XAxis'), { dataKey: "month", stroke: "#9CA3AF" }),
                                 React.createElement(getRechartsComponent('YAxis'), { stroke: "#9CA3AF" }),
-                                React.createElement(getRechartsComponent('Tooltip'), { 
-                                    contentStyle: { 
-                                        backgroundColor: '#1F2937', 
+                                React.createElement(getRechartsComponent('Tooltip'), {
+                                    contentStyle: {
+                                        backgroundColor: '#1F2937',
                                         border: '1px solid #374151',
                                         borderRadius: '8px'
                                     }
@@ -608,9 +609,10 @@ const Modal = ({ isOpen, onClose, title, children, size = 'md' }) => {
     );
 };
 
-// Client Form Component
+// Client Form Component with Training History
 const ClientForm = ({ client, onSave, onCancel }) => {
     const { appData } = useContext(AppContext);
+    const [activeTab, setActiveTab] = useState('details');
     const [formData, setFormData] = useState(client || {
         legalName: '',
         fantasyName: '',
@@ -632,6 +634,28 @@ const ClientForm = ({ client, onSave, onCancel }) => {
         observations: ''
     });
 
+    // Get client trainings
+    const clientTrainings = useMemo(() => {
+        if (!client) return [];
+        return appData.trainings
+            .filter(training => training.clientId === client.id)
+            .sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime));
+    }, [appData.trainings, client]);
+
+    // Get client activity summary
+    const clientSummary = useMemo(() => {
+        if (!client) return null;
+        const trainings = clientTrainings;
+        return {
+            totalTrainings: trainings.length,
+            completedTrainings: trainings.filter(t => t.status === 'COMPLETADA').length,
+            scheduledTrainings: trainings.filter(t => t.status === 'AGENDADA').length,
+            lastTraining: trainings.length > 0 ? trainings[0] : null,
+            pmTrainings: trainings.filter(t => t.type === 'PM').length,
+            generalTrainings: trainings.filter(t => t.type === 'General').length
+        };
+    }, [clientTrainings, client]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
         onSave(formData);
@@ -642,18 +666,73 @@ const ClientForm = ({ client, onSave, onCancel }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Razón Social *</label>
-                    <input
-                        type="text"
-                        value={formData.legalName}
-                        onChange={(e) => handleChange('legalName', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                        required
-                    />
-                </div>
+        <div className="space-y-4">
+            {/* Tabs */}
+            <div className="flex border-b border-secondary/30">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('details')}
+                    className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                        activeTab === 'details' 
+                            ? 'border-accent text-accent' 
+                            : 'border-transparent text-light/70 hover:text-light'
+                    }`}
+                >
+                    Detalles del Cliente
+                </button>
+                {client && (
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('history')}
+                        className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
+                            activeTab === 'history' 
+                                ? 'border-accent text-accent' 
+                                : 'border-transparent text-light/70 hover:text-light'
+                        }`}
+                    >
+                        Historial de Capacitaciones ({clientTrainings.length})
+                    </button>
+                )}
+            </div>
+
+            {activeTab === 'details' ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Client Summary Card */}
+                    {client && clientSummary && (
+                        <div className="bg-primary/30 p-4 rounded-lg border border-secondary/30">
+                            <h4 className="text-sm font-semibold text-light mb-3">Resumen del Cliente</h4>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-accent">{clientSummary.totalTrainings}</div>
+                                    <div className="text-light/70">Total Capacitaciones</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-green-400">{clientSummary.completedTrainings}</div>
+                                    <div className="text-light/70">Completadas</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-blue-400">{clientSummary.scheduledTrainings}</div>
+                                    <div className="text-light/70">Programadas</div>
+                                </div>
+                                <div className="text-center">
+                                    <div className="text-2xl font-bold text-purple-400">{clientSummary.pmTrainings}</div>
+                                    <div className="text-light/70">PM / {clientSummary.generalTrainings} General</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Razón Social *</label>
+                            <input
+                                type="text"
+                                value={formData.legalName}
+                                onChange={(e) => handleChange('legalName', e.target.value)}
+                                className="w-full px-3 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary"
+                                required
+                            />
+                        </div>
                 <div>
                     <label className="block text-sm font-medium text-light/70 mb-2">Nombre de Fantasía</label>
                     <input
@@ -668,10 +747,11 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     <select
                         value={formData.status}
                         onChange={(e) => handleChange('status', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
                         {appData.config.clientStatuses.map(status => (
-                            <option key={status} value={status}>{status}</option>
+                            <option key={status} value={status} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{status}</option>
                         ))}
                     </select>
                 </div>
@@ -680,11 +760,12 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     <select
                         value={formData.industry}
                         onChange={(e) => handleChange('industry', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
-                        <option value="">Seleccionar rubro</option>
+                        <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Seleccionar rubro</option>
                         {appData.config.industries.map(industry => (
-                            <option key={industry} value={industry}>{industry}</option>
+                            <option key={industry} value={industry} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{industry}</option>
                         ))}
                     </select>
                 </div>
@@ -693,10 +774,11 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     <select
                         value={formData.connectionType}
                         onChange={(e) => handleChange('connectionType', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
                         {appData.config.connectionTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
+                            <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
                         ))}
                     </select>
                 </div>
@@ -705,10 +787,11 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     <select
                         value={formData.contractType}
                         onChange={(e) => handleChange('contractType', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
                         {appData.config.contractTypes.map(type => (
-                            <option key={type} value={type}>{type}</option>
+                            <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
                         ))}
                     </select>
                 </div>
@@ -762,22 +845,96 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                 />
             </div>
 
-            <div className="flex justify-end space-x-3 pt-4">
-                <button
-                    type="button"
-                    onClick={onCancel}
-                    className="px-4 py-2 text-light/70 hover:text-light transition-colors"
-                >
-                    Cancelar
-                </button>
-                <button
-                    type="submit"
-                    className="px-6 py-2 bg-accent text-primary rounded-lg hover:bg-accent/90 transition-colors font-medium"
-                >
-                    {client ? 'Actualizar' : 'Crear'} Cliente
-                </button>
-            </div>
-        </form>
+                    <div className="flex justify-end space-x-3 pt-4">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="px-4 py-2 text-light/70 hover:text-light transition-colors"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            type="submit"
+                            className="px-6 py-2 bg-accent text-primary rounded-lg hover:bg-accent/90 transition-colors font-medium"
+                        >
+                            {client ? 'Actualizar' : 'Crear'} Cliente
+                        </button>
+                    </div>
+                </form>
+            ) : (
+                /* Training History Tab */
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                        <h4 className="text-lg font-semibold text-light">Historial de Capacitaciones</h4>
+                        <div className="text-sm text-light/70">
+                            {clientSummary.lastTraining && (
+                                <span>Última: {new Date(clientSummary.lastTraining.dateTime).toLocaleDateString()}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {clientTrainings.length === 0 ? (
+                        <div className="text-center py-8 text-light/50">
+                            <i className="fas fa-chalkboard-teacher text-4xl mb-4"></i>
+                            <p>No hay capacitaciones registradas para este cliente</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                            {clientTrainings.map(training => (
+                                <div key={training.id} className="bg-primary/30 p-4 rounded-lg border border-secondary/30">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex-1">
+                                            <h5 className="font-medium text-light">{training.topic}</h5>
+                                            <div className="flex items-center space-x-4 mt-1 text-sm text-light/70">
+                                                <span className={`px-2 py-1 rounded-full text-xs ${
+                                                    training.type === 'PM' ? 'bg-purple-400/20 text-purple-400' : 'bg-cyan-400/20 text-cyan-400'
+                                                }`}>
+                                                    {training.type}
+                                                </span>
+                                                <span>Responsable: {training.responsible}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                                training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
+                                                training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
+                                                training.status === 'EN PROCESO' ? 'bg-yellow-400/20 text-yellow-400' :
+                                                training.status === 'REAGENDADA' ? 'bg-orange-400/20 text-orange-400' :
+                                                'bg-red-400/20 text-red-400'
+                                            }`}>
+                                                {training.status}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div className="text-sm text-light/70">
+                                        <div className="flex justify-between items-center">
+                                            <span>
+                                                {new Date(training.dateTime).toLocaleDateString()} - {new Date(training.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            </span>
+                                        </div>
+                                        {training.observations && (
+                                            <div className="mt-2 p-2 bg-secondary/20 rounded text-xs">
+                                                <strong>Observaciones:</strong> {training.observations}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end space-x-3 pt-4 border-t border-secondary/30">
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="px-4 py-2 text-light/70 hover:text-light transition-colors"
+                        >
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -851,18 +1008,19 @@ const Clients = () => {
                         placeholder="Buscar clientes..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light placeholder-light/50 focus:outline-none focus:border-accent"
+                        className="w-full px-4 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light placeholder-light/70 focus:outline-none focus:border-accent focus:bg-secondary"
                     />
                 </div>
                 <div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="px-4 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
-                        <option value="">Todos los estados</option>
+                        <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Todos los estados</option>
                         {appData.config.clientStatuses.map(status => (
-                            <option key={status} value={status}>{status}</option>
+                            <option key={status} value={status} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{status}</option>
                         ))}
                     </select>
                 </div>
@@ -1156,29 +1314,31 @@ const Trainings = () => {
                         placeholder="Buscar capacitaciones..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light placeholder-light/50 focus:outline-none focus:border-accent"
+                        className="w-full px-4 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light placeholder-light/70 focus:outline-none focus:border-accent focus:bg-secondary"
                     />
                 </div>
                 <div>
                     <select
                         value={typeFilter}
                         onChange={(e) => setTypeFilter(e.target.value)}
-                        className="px-4 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="px-4 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
-                        <option value="">Todos los tipos</option>
-                        <option value="General">General</option>
-                        <option value="PM">PM</option>
+                        <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Todos los tipos</option>
+                        <option value="General" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>General</option>
+                        <option value="PM" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>PM</option>
                     </select>
                 </div>
                 <div>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="px-4 py-2 bg-secondary/20 border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        className="px-4 py-2 bg-secondary/80 border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary"
+                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
                     >
-                        <option value="">Todos los estados</option>
+                        <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Todos los estados</option>
                         {appData.config.trainingStatuses.map(status => (
-                            <option key={status} value={status}>{status}</option>
+                            <option key={status} value={status} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{status}</option>
                         ))}
                     </select>
                 </div>
