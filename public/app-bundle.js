@@ -134,7 +134,7 @@ const addGlobalStyles = () => {
 // NUCLEAR OPTION - FORCE STYLES WITH MAXIMUM AGGRESSION
 const forceStyles = () => {
     addGlobalStyles();
-    
+
     // FORCE ALL SELECTS WITH MAXIMUM SPECIFICITY
     const selects = document.querySelectorAll('select');
     selects.forEach(select => {
@@ -148,7 +148,7 @@ const forceStyles = () => {
         select.style.setProperty('-webkit-appearance', 'none', 'important');
         select.style.setProperty('-moz-appearance', 'none', 'important');
         select.style.setProperty('appearance', 'none', 'important');
-        
+
         // FORCE ALL OPTIONS WITH MAXIMUM SPECIFICITY
         const options = select.querySelectorAll('option');
         options.forEach(option => {
@@ -157,7 +157,7 @@ const forceStyles = () => {
             option.style.setProperty('padding', '8px 12px', 'important');
         });
     });
-    
+
     // FORCE ALL INPUTS WITH MAXIMUM SPECIFICITY
     const inputs = document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea');
     inputs.forEach(input => {
@@ -168,17 +168,17 @@ const forceStyles = () => {
         input.style.setProperty('border-radius', '6px', 'important');
         input.style.setProperty('font-size', '14px', 'important');
     });
-    
+
     // FORCE FOCUS STATES
     document.querySelectorAll('select, input, textarea').forEach(element => {
-        element.addEventListener('focus', function() {
+        element.addEventListener('focus', function () {
             this.style.setProperty('background-color', '#F9FAFB', 'important');
             this.style.setProperty('border-color', '#10B981', 'important');
             this.style.setProperty('outline', 'none', 'important');
             this.style.setProperty('box-shadow', '0 0 0 3px rgba(16, 185, 129, 0.1)', 'important');
         });
-        
-        element.addEventListener('blur', function() {
+
+        element.addEventListener('blur', function () {
             this.style.setProperty('background-color', '#FFFFFF', 'important');
             this.style.setProperty('border-color', '#6B7280', 'important');
         });
@@ -215,7 +215,7 @@ if (typeof MutationObserver !== 'undefined') {
             setTimeout(forceStyles, 100); // Small delay to ensure elements are fully rendered
         }
     });
-    
+
     // Start observing
     observer.observe(document.body || document.documentElement, {
         childList: true,
