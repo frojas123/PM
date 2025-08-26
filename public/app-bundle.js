@@ -2,6 +2,114 @@
 const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
 const { createRoot } = ReactDOM;
 
+// Add global styles for better contrast
+const addGlobalStyles = () => {
+    if (document.getElementById('pm-global-styles')) return;
+    
+    const style = document.createElement('style');
+    style.id = 'pm-global-styles';
+    style.textContent = `
+        /* Force better contrast for all select elements with highest specificity */
+        body select,
+        div select,
+        form select {
+            background-color: #374151 !important;
+            color: #F9FAFB !important;
+            border: 2px solid #6B7280 !important;
+            -webkit-appearance: none !important;
+            -moz-appearance: none !important;
+            appearance: none !important;
+        }
+        
+        body select:focus,
+        div select:focus,
+        form select:focus {
+            background-color: #4B5563 !important;
+            border-color: #10B981 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+        }
+        
+        /* Ensure option elements have proper styling with highest specificity */
+        body select option,
+        div select option,
+        form select option {
+            background-color: #374151 !important;
+            color: #F9FAFB !important;
+            padding: 8px 12px !important;
+            border: none !important;
+        }
+        
+        body select option:hover,
+        body select option:focus,
+        body select option:checked,
+        body select option[selected] {
+            background-color: #10B981 !important;
+            color: #1F2937 !important;
+        }
+        
+        /* Input styling improvements with highest specificity */
+        body input[type="text"], 
+        body input[type="email"], 
+        body input[type="number"], 
+        body input[type="date"], 
+        body input[type="datetime-local"], 
+        body textarea,
+        div input[type="text"], 
+        div input[type="email"], 
+        div input[type="number"], 
+        div input[type="date"], 
+        div input[type="datetime-local"], 
+        div textarea {
+            background-color: #4B5563 !important;
+            color: #F9FAFB !important;
+            border: 2px solid #6B7280 !important;
+        }
+        
+        body input::placeholder, 
+        body textarea::placeholder,
+        div input::placeholder, 
+        div textarea::placeholder {
+            color: #9CA3AF !important;
+            opacity: 1 !important;
+        }
+        
+        body input:focus, 
+        body textarea:focus,
+        div input:focus, 
+        div textarea:focus {
+            background-color: #374151 !important;
+            border-color: #10B981 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+        }
+        
+        /* Additional styling for better visibility */
+        .pm-select-wrapper {
+            position: relative;
+        }
+        
+        .pm-select-wrapper::after {
+            content: '▼';
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9CA3AF;
+            pointer-events: none;
+            font-size: 12px;
+        }
+    `;
+    document.head.appendChild(style);
+};
+
+// Apply styles when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addGlobalStyles);
+} else {
+    addGlobalStyles();
+}
+
 // Check if Recharts is available
 const isRechartsAvailable = () => {
     return typeof window !== 'undefined' && typeof window.Recharts !== 'undefined';
@@ -672,11 +780,10 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                 <button
                     type="button"
                     onClick={() => setActiveTab('details')}
-                    className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-                        activeTab === 'details' 
-                            ? 'border-accent text-accent' 
+                    className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === 'details'
+                            ? 'border-accent text-accent'
                             : 'border-transparent text-light/70 hover:text-light'
-                    }`}
+                        }`}
                 >
                     Detalles del Cliente
                 </button>
@@ -684,11 +791,10 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     <button
                         type="button"
                         onClick={() => setActiveTab('history')}
-                        className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
-                            activeTab === 'history' 
-                                ? 'border-accent text-accent' 
+                        className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${activeTab === 'history'
+                                ? 'border-accent text-accent'
                                 : 'border-transparent text-light/70 hover:text-light'
-                        }`}
+                            }`}
                     >
                         Historial de Capacitaciones ({clientTrainings.length})
                     </button>
@@ -733,117 +839,117 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                                 required
                             />
                         </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Nombre de Fantasía</label>
-                    <input
-                        type="text"
-                        value={formData.fantasyName}
-                        onChange={(e) => handleChange('fantasyName', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Estado</label>
-                    <select
-                        value={formData.status}
-                        onChange={(e) => handleChange('status', e.target.value)}
-                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
-                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
-                    >
-                        {appData.config.clientStatuses.map(status => (
-                            <option key={status} value={status} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{status}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Rubro</label>
-                    <select
-                        value={formData.industry}
-                        onChange={(e) => handleChange('industry', e.target.value)}
-                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
-                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
-                    >
-                        <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Seleccionar rubro</option>
-                        {appData.config.industries.map(industry => (
-                            <option key={industry} value={industry} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{industry}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Tipo de Conexión</label>
-                    <select
-                        value={formData.connectionType}
-                        onChange={(e) => handleChange('connectionType', e.target.value)}
-                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
-                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
-                    >
-                        {appData.config.connectionTypes.map(type => (
-                            <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Tipo de Contrato</label>
-                    <select
-                        value={formData.contractType}
-                        onChange={(e) => handleChange('contractType', e.target.value)}
-                        className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
-                        style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
-                    >
-                        {appData.config.contractTypes.map(type => (
-                            <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Fecha de Registro</label>
-                    <input
-                        type="date"
-                        value={formData.registrationDate}
-                        onChange={(e) => handleChange('registrationDate', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Licencias</label>
-                    <input
-                        type="number"
-                        value={formData.licenses}
-                        onChange={(e) => handleChange('licenses', parseInt(e.target.value) || 0)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                        min="1"
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Email Principal *</label>
-                    <input
-                        type="email"
-                        value={formData.clientEmail}
-                        onChange={(e) => handleChange('clientEmail', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                        required
-                    />
-                </div>
-                <div>
-                    <label className="block text-sm font-medium text-light/70 mb-2">Email Secundario</label>
-                    <input
-                        type="email"
-                        value={formData.clientEmail2}
-                        onChange={(e) => handleChange('clientEmail2', e.target.value)}
-                        className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                    />
-                </div>
-            </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Nombre de Fantasía</label>
+                            <input
+                                type="text"
+                                value={formData.fantasyName}
+                                onChange={(e) => handleChange('fantasyName', e.target.value)}
+                                className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Estado</label>
+                            <select
+                                value={formData.status}
+                                onChange={(e) => handleChange('status', e.target.value)}
+                                className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                                style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
+                            >
+                                {appData.config.clientStatuses.map(status => (
+                                    <option key={status} value={status} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{status}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Rubro</label>
+                            <select
+                                value={formData.industry}
+                                onChange={(e) => handleChange('industry', e.target.value)}
+                                className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                                style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
+                            >
+                                <option value="" style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>Seleccionar rubro</option>
+                                {appData.config.industries.map(industry => (
+                                    <option key={industry} value={industry} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{industry}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Tipo de Conexión</label>
+                            <select
+                                value={formData.connectionType}
+                                onChange={(e) => handleChange('connectionType', e.target.value)}
+                                className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                                style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
+                            >
+                                {appData.config.connectionTypes.map(type => (
+                                    <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Tipo de Contrato</label>
+                            <select
+                                value={formData.contractType}
+                                onChange={(e) => handleChange('contractType', e.target.value)}
+                                className="w-full px-3 py-2 bg-secondary border border-secondary/50 rounded-lg text-light focus:outline-none focus:border-accent focus:bg-secondary/80"
+                                style={{ backgroundColor: '#374151', color: '#F9FAFB' }}
+                            >
+                                {appData.config.contractTypes.map(type => (
+                                    <option key={type} value={type} style={{ backgroundColor: '#374151', color: '#F9FAFB' }}>{type}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Fecha de Registro</label>
+                            <input
+                                type="date"
+                                value={formData.registrationDate}
+                                onChange={(e) => handleChange('registrationDate', e.target.value)}
+                                className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Licencias</label>
+                            <input
+                                type="number"
+                                value={formData.licenses}
+                                onChange={(e) => handleChange('licenses', parseInt(e.target.value) || 0)}
+                                className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                                min="1"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Email Principal *</label>
+                            <input
+                                type="email"
+                                value={formData.clientEmail}
+                                onChange={(e) => handleChange('clientEmail', e.target.value)}
+                                className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-light/70 mb-2">Email Secundario</label>
+                            <input
+                                type="email"
+                                value={formData.clientEmail2}
+                                onChange={(e) => handleChange('clientEmail2', e.target.value)}
+                                className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                            />
+                        </div>
+                    </div>
 
-            <div>
-                <label className="block text-sm font-medium text-light/70 mb-2">Observaciones</label>
-                <textarea
-                    value={formData.observations}
-                    onChange={(e) => handleChange('observations', e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
-                />
-            </div>
+                    <div>
+                        <label className="block text-sm font-medium text-light/70 mb-2">Observaciones</label>
+                        <textarea
+                            value={formData.observations}
+                            onChange={(e) => handleChange('observations', e.target.value)}
+                            rows={3}
+                            className="w-full px-3 py-2 bg-primary border border-secondary/30 rounded-lg text-light focus:outline-none focus:border-accent"
+                        />
+                    </div>
 
                     <div className="flex justify-end space-x-3 pt-4">
                         <button
@@ -886,22 +992,20 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                                         <div className="flex-1">
                                             <h5 className="font-medium text-light">{training.topic}</h5>
                                             <div className="flex items-center space-x-4 mt-1 text-sm text-light/70">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${
-                                                    training.type === 'PM' ? 'bg-purple-400/20 text-purple-400' : 'bg-cyan-400/20 text-cyan-400'
-                                                }`}>
+                                                <span className={`px-2 py-1 rounded-full text-xs ${training.type === 'PM' ? 'bg-purple-400/20 text-purple-400' : 'bg-cyan-400/20 text-cyan-400'
+                                                    }`}>
                                                     {training.type}
                                                 </span>
                                                 <span>Responsable: {training.responsible}</span>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
-                                                training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
-                                                training.status === 'EN PROCESO' ? 'bg-yellow-400/20 text-yellow-400' :
-                                                training.status === 'REAGENDADA' ? 'bg-orange-400/20 text-orange-400' :
-                                                'bg-red-400/20 text-red-400'
-                                            }`}>
+                                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
+                                                    training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
+                                                        training.status === 'EN PROCESO' ? 'bg-yellow-400/20 text-yellow-400' :
+                                                            training.status === 'REAGENDADA' ? 'bg-orange-400/20 text-orange-400' :
+                                                                'bg-red-400/20 text-red-400'
+                                                }`}>
                                                 {training.status}
                                             </span>
                                         </div>
@@ -909,7 +1013,7 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                                     <div className="text-sm text-light/70">
                                         <div className="flex justify-between items-center">
                                             <span>
-                                                {new Date(training.dateTime).toLocaleDateString()} - {new Date(training.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                {new Date(training.dateTime).toLocaleDateString()} - {new Date(training.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
                                         {training.observations && (
