@@ -1,7 +1,28 @@
 // PM Gestor Pro - Bundle completo para GitHub Pages
 const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
 const { createRoot } = ReactDOM;
-const { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts || {};
+
+// Safely access Recharts components
+const getRechartsComponents = () => {
+    if (typeof Recharts !== 'undefined') {
+        return {
+            PieChart: Recharts.PieChart,
+            Pie: Recharts.Pie,
+            Cell: Recharts.Cell,
+            BarChart: Recharts.BarChart,
+            Bar: Recharts.Bar,
+            XAxis: Recharts.XAxis,
+            YAxis: Recharts.YAxis,
+            CartesianGrid: Recharts.CartesianGrid,
+            Tooltip: Recharts.Tooltip,
+            Legend: Recharts.Legend,
+            ResponsiveContainer: Recharts.ResponsiveContainer
+        };
+    }
+    return {};
+};
+
+const { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = getRechartsComponents();
 
 // Constants
 const navItems = [
@@ -211,7 +232,7 @@ const Dashboard = () => {
     const [refreshKey, setRefreshKey] = useState(0);
 
     const stats = useMemo(() => getStatistics(), [getStatistics, refreshKey]);
-    
+
     const clients = appData?.clients || [];
     const trainings = appData?.trainings || [];
 
@@ -220,7 +241,7 @@ const Dashboard = () => {
     const activeClients = clients.filter(c => c.status === 'Activo').length;
     const implementationClients = clients.filter(c => c.status === 'Implementación').length;
     const pausedClients = clients.filter(c => c.status === 'En Pausa').length;
-    
+
     // Training metrics
     const completedTrainings = trainings.filter(t => t.status === 'COMPLETADA').length;
     const scheduledTrainings = trainings.filter(t => t.status === 'AGENDADA').length;
@@ -274,16 +295,16 @@ const Dashboard = () => {
     const trainingTrendData = useMemo(() => {
         const last6Months = [];
         const now = new Date();
-        
+
         for (let i = 5; i >= 0; i--) {
             const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const monthName = date.toLocaleDateString('es-ES', { month: 'short' });
             const monthTrainings = trainings.filter(t => {
                 const trainingDate = new Date(t.dateTime);
-                return trainingDate.getMonth() === date.getMonth() && 
-                       trainingDate.getFullYear() === date.getFullYear();
+                return trainingDate.getMonth() === date.getMonth() &&
+                    trainingDate.getFullYear() === date.getFullYear();
             });
-            
+
             last6Months.push({
                 month: monthName,
                 completed: monthTrainings.filter(t => t.status === 'COMPLETADA').length,
@@ -291,7 +312,7 @@ const Dashboard = () => {
                 total: monthTrainings.length
             });
         }
-        
+
         return last6Months;
     }, [trainings]);
 
@@ -325,7 +346,7 @@ const Dashboard = () => {
                     </button>
                 </div>
             </div>
-            
+
             {/* Key Metrics Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-secondary/20 p-6 rounded-lg border border-secondary/30 hover:bg-secondary/30 transition-colors">
@@ -402,7 +423,7 @@ const Dashboard = () => {
                 {/* Status Chart */}
                 <div className="bg-secondary/20 p-6 rounded-lg border border-secondary/30">
                     <h3 className="text-lg font-semibold text-light mb-4">Estado de Clientes</h3>
-                    {Recharts ? (
+                    {typeof Recharts !== 'undefined' && PieChart ? (
                         <ResponsiveContainer width="100%" height={250}>
                             <PieChart>
                                 <Pie
@@ -446,7 +467,7 @@ const Dashboard = () => {
                         {industryData.map((item, index) => (
                             <div key={item.name} className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
-                                    <div 
+                                    <div
                                         className="w-3 h-3 rounded-full"
                                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                                     ></div>
@@ -464,15 +485,15 @@ const Dashboard = () => {
                 {/* Training Trends */}
                 <div className="bg-secondary/20 p-6 rounded-lg border border-secondary/30">
                     <h3 className="text-lg font-semibold text-light mb-4">Tendencia de Capacitaciones</h3>
-                    {Recharts ? (
+                    {typeof Recharts !== 'undefined' && BarChart ? (
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={trainingTrendData}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                                 <XAxis dataKey="month" stroke="#9CA3AF" />
                                 <YAxis stroke="#9CA3AF" />
-                                <Tooltip 
-                                    contentStyle={{ 
-                                        backgroundColor: '#1F2937', 
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1F2937',
                                         border: '1px solid #374151',
                                         borderRadius: '8px'
                                     }}
@@ -511,11 +532,10 @@ const Dashboard = () => {
                                         <div className="text-xs text-light/70">{client.industry}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className={`text-xs px-2 py-1 rounded-full ${
-                                            client.status === 'Activo' ? 'bg-green-400/20 text-green-400' :
-                                            client.status === 'Implementación' ? 'bg-yellow-400/20 text-yellow-400' :
-                                            'bg-gray-400/20 text-gray-400'
-                                        }`}>
+                                        <div className={`text-xs px-2 py-1 rounded-full ${client.status === 'Activo' ? 'bg-green-400/20 text-green-400' :
+                                                client.status === 'Implementación' ? 'bg-yellow-400/20 text-yellow-400' :
+                                                    'bg-gray-400/20 text-gray-400'
+                                            }`}>
                                             {client.status}
                                         </div>
                                         <div className="text-xs text-light/50 mt-1">
@@ -546,13 +566,12 @@ const Dashboard = () => {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className={`text-xs px-2 py-1 rounded-full ${
-                                                training.type === 'PM' ? 'bg-purple-400/20 text-purple-400' : 'bg-cyan-400/20 text-cyan-400'
-                                            }`}>
+                                            <div className={`text-xs px-2 py-1 rounded-full ${training.type === 'PM' ? 'bg-purple-400/20 text-purple-400' : 'bg-cyan-400/20 text-cyan-400'
+                                                }`}>
                                                 {training.type}
                                             </div>
                                             <div className="text-xs text-light/50 mt-1">
-                                                {new Date(training.dateTime).toLocaleDateString()} {new Date(training.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                {new Date(training.dateTime).toLocaleDateString()} {new Date(training.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </div>
                                         </div>
                                     </div>
@@ -740,7 +759,7 @@ const ClientForm = ({ client, onSave, onCancel }) => {
                     />
                 </div>
             </div>
-            
+
             <div>
                 <label className="block text-sm font-medium text-light/70 mb-2">Observaciones</label>
                 <textarea
@@ -781,8 +800,8 @@ const Clients = () => {
     const filteredClients = useMemo(() => {
         return appData.clients.filter(client => {
             const matchesSearch = client.legalName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                client.fantasyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                client.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
+                client.fantasyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                client.clientEmail.toLowerCase().includes(searchTerm.toLowerCase());
             const matchesStatus = !statusFilter || client.status === statusFilter;
             return matchesSearch && matchesStatus;
         });
@@ -1037,7 +1056,7 @@ const TrainingForm = ({ training, onSave, onCancel }) => {
                     </select>
                 </div>
             </div>
-            
+
             <div>
                 <label className="block text-sm font-medium text-light/70 mb-2">Observaciones</label>
                 <textarea
@@ -1080,8 +1099,8 @@ const Trainings = () => {
         return appData.trainings.filter(training => {
             const client = appData.clients.find(c => c.id === training.clientId);
             const matchesSearch = training.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                training.responsible.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                (client && client.legalName.toLowerCase().includes(searchTerm.toLowerCase()));
+                training.responsible.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                (client && client.legalName.toLowerCase().includes(searchTerm.toLowerCase()));
             const matchesStatus = !statusFilter || training.status === statusFilter;
             const matchesType = !typeFilter || training.type === typeFilter;
             return matchesSearch && matchesStatus && matchesType;
@@ -1209,7 +1228,7 @@ const Trainings = () => {
                                         <td className="px-6 py-4 text-sm text-light">{training.topic}</td>
                                         <td className="px-6 py-4 text-sm text-light">{training.responsible}</td>
                                         <td className="px-6 py-4 text-sm text-light">
-                                            {new Date(training.dateTime).toLocaleDateString()} {new Date(training.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                            {new Date(training.dateTime).toLocaleDateString()} {new Date(training.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(training.status)}`}>
@@ -1270,8 +1289,8 @@ const Calendar = () => {
     const trainingsThisMonth = useMemo(() => {
         return appData.trainings.filter(training => {
             const trainingDate = new Date(training.dateTime);
-            return trainingDate.getMonth() === currentDate.getMonth() && 
-                   trainingDate.getFullYear() === currentDate.getFullYear();
+            return trainingDate.getMonth() === currentDate.getMonth() &&
+                trainingDate.getFullYear() === currentDate.getFullYear();
         });
     }, [appData.trainings, currentDate]);
 
@@ -1284,17 +1303,17 @@ const Calendar = () => {
         const startingDayOfWeek = firstDay.getDay();
 
         const days = [];
-        
+
         // Add empty cells for days before the first day of the month
         for (let i = 0; i < startingDayOfWeek; i++) {
             days.push(null);
         }
-        
+
         // Add days of the month
         for (let day = 1; day <= daysInMonth; day++) {
             days.push(day);
         }
-        
+
         return days;
     };
 
@@ -1355,21 +1374,20 @@ const Calendar = () => {
                                 </div>
                             ))}
                         </div>
-                        
+
                         {/* Calendar days */}
                         <div className="grid grid-cols-7 gap-1">
                             {days.map((day, index) => {
                                 const trainings = getTrainingsForDay(day);
-                                const isToday = day && 
-                                    new Date().toDateString() === 
+                                const isToday = day &&
+                                    new Date().toDateString() ===
                                     new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-                                
+
                                 return (
                                     <div
                                         key={index}
-                                        className={`min-h-[80px] p-2 border border-secondary/20 rounded-lg cursor-pointer hover:bg-secondary/10 transition-colors ${
-                                            isToday ? 'bg-accent/20 border-accent/50' : ''
-                                        } ${!day ? 'cursor-default hover:bg-transparent' : ''}`}
+                                        className={`min-h-[80px] p-2 border border-secondary/20 rounded-lg cursor-pointer hover:bg-secondary/10 transition-colors ${isToday ? 'bg-accent/20 border-accent/50' : ''
+                                            } ${!day ? 'cursor-default hover:bg-transparent' : ''}`}
                                         onClick={() => day && setSelectedDate(day)}
                                     >
                                         {day && (
@@ -1418,11 +1436,10 @@ const Calendar = () => {
                                         <div key={training.id} className="p-3 bg-primary/30 rounded-lg">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h4 className="text-sm font-medium text-light">{training.topic}</h4>
-                                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                                    training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
-                                                    training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
-                                                    'bg-yellow-400/20 text-yellow-400'
-                                                }`}>
+                                                <span className={`text-xs px-2 py-1 rounded-full ${training.status === 'COMPLETADA' ? 'bg-green-400/20 text-green-400' :
+                                                        training.status === 'AGENDADA' ? 'bg-blue-400/20 text-blue-400' :
+                                                            'bg-yellow-400/20 text-yellow-400'
+                                                    }`}>
                                                     {training.status}
                                                 </span>
                                             </div>
@@ -1433,7 +1450,7 @@ const Calendar = () => {
                                                 Responsable: {training.responsible}
                                             </p>
                                             <p className="text-xs text-light/50">
-                                                {new Date(training.dateTime).toLocaleDateString()} - {new Date(training.dateTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                                                {new Date(training.dateTime).toLocaleDateString()} - {new Date(training.dateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
                                     );
@@ -1465,17 +1482,16 @@ const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
                     </div>
                     {!isCollapsed && <h1 className="text-xl font-bold text-light">PM Gestor Pro</h1>}
                 </div>
-                
+
                 <nav className="space-y-2">
                     {navItems.map((item) => (
                         <button
                             key={item.id}
                             onClick={() => setActiveView(item.id)}
-                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                                activeView === item.id 
-                                    ? 'bg-accent text-primary' 
+                            className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${activeView === item.id
+                                    ? 'bg-accent text-primary'
                                     : 'text-light hover:bg-primary/20'
-                            }`}
+                                }`}
                         >
                             <span className="w-5 h-5 flex items-center justify-center">
                                 {item.icon}
@@ -1548,7 +1564,7 @@ const AppProvider = ({ children, initialData }) => {
     const updateClient = useCallback((clientId, updatedClient) => {
         setAppData(prev => ({
             ...prev,
-            clients: prev.clients.map(client => 
+            clients: prev.clients.map(client =>
                 client.id === clientId ? { ...client, ...updatedClient } : client
             )
         }));
@@ -1576,7 +1592,7 @@ const AppProvider = ({ children, initialData }) => {
     const updateTraining = useCallback((trainingId, updatedTraining) => {
         setAppData(prev => ({
             ...prev,
-            trainings: prev.trainings.map(training => 
+            trainings: prev.trainings.map(training =>
                 training.id === trainingId ? { ...training, ...updatedTraining } : training
             )
         }));
@@ -1613,7 +1629,7 @@ const AppProvider = ({ children, initialData }) => {
     const updateProject = useCallback((projectId, updatedProject) => {
         setAppData(prev => ({
             ...prev,
-            projects: prev.projects.map(project => 
+            projects: prev.projects.map(project =>
                 project.id === projectId ? { ...project, ...updatedProject } : project
             )
         }));
@@ -1641,7 +1657,7 @@ const AppProvider = ({ children, initialData }) => {
     const updateTask = useCallback((taskId, updatedTask) => {
         setAppData(prev => ({
             ...prev,
-            tasks: prev.tasks.map(task => 
+            tasks: prev.tasks.map(task =>
                 task.id === taskId ? { ...task, ...updatedTask } : task
             )
         }));
@@ -1657,9 +1673,9 @@ const AppProvider = ({ children, initialData }) => {
     // Notification management
     const addNotification = useCallback((notification) => {
         const id = Math.max(...appData.notifications.map(n => n.id), 0) + 1;
-        const notificationWithId = { 
-            ...notification, 
-            id, 
+        const notificationWithId = {
+            ...notification,
+            id,
             createdAt: new Date().toISOString(),
             read: false
         };
@@ -1672,7 +1688,7 @@ const AppProvider = ({ children, initialData }) => {
     const markNotificationAsRead = useCallback((notificationId) => {
         setAppData(prev => ({
             ...prev,
-            notifications: prev.notifications.map(notification => 
+            notifications: prev.notifications.map(notification =>
                 notification.id === notificationId ? { ...notification, read: true } : notification
             )
         }));
@@ -1784,7 +1800,7 @@ const AppProvider = ({ children, initialData }) => {
         // Analytics
         getStatistics
     };
-    
+
     return React.createElement(AppContext.Provider, { value }, children);
 };
 
@@ -1816,14 +1832,14 @@ const AppContent = () => {
 
     return (
         <div className="flex h-screen bg-primary text-light overflow-hidden">
-            <Sidebar 
-                isCollapsed={isSidebarCollapsed} 
-                activeView={activeView} 
-                setActiveView={setActiveView} 
+            <Sidebar
+                isCollapsed={isSidebarCollapsed}
+                activeView={activeView}
+                setActiveView={setActiveView}
             />
             <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[60px]' : 'ml-64'}`}>
-                <Header 
-                    toggleSidebar={toggleSidebar} 
+                <Header
+                    toggleSidebar={toggleSidebar}
                     isSidebarCollapsed={isSidebarCollapsed}
                     title={currentViewTitle}
                 />
