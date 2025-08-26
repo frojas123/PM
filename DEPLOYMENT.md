@@ -43,7 +43,7 @@ Si prefieres hacer deployment manual:
 
 ## Configuración Importante
 
-- **Base URL:** El proyecto está configurado para funcionar en `/pm-gestor-pro/`
+- **Base URL:** El proyecto está configurado para funcionar en `/PM/`
 - **Archivos estáticos:** Se sirven desde el directorio `public/`
 - **Build output:** Se genera en el directorio `dist/`
 

@@ -12,7 +12,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/1Mxb4eDzfauMSoReuiJkM9Z
 
 Este proyecto está configurado para deployment automático en GitHub Pages.
 
-**Ver la aplicación desplegada:** `https://[tu-usuario].github.io/pm-gestor-pro/`
+**Ver la aplicación desplegada:** `https://[tu-usuario].github.io/PM/`
 
 ### Configuración rápida:
 
