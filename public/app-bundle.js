@@ -109,12 +109,43 @@ const addGlobalStyles = () => {
     document.head.appendChild(style);
 };
 
-// Apply styles when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', addGlobalStyles);
-} else {
+// Apply styles when DOM is ready and force them periodically
+const forceStyles = () => {
     addGlobalStyles();
+    
+    // Force styles on all existing select elements
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        select.style.backgroundColor = '#FFFFFF';
+        select.style.color = '#1F2937';
+        select.style.border = '2px solid #6B7280';
+        
+        // Force styles on options
+        const options = select.querySelectorAll('option');
+        options.forEach(option => {
+            option.style.backgroundColor = '#FFFFFF';
+            option.style.color = '#1F2937';
+        });
+    });
+    
+    // Force styles on all inputs
+    const inputs = document.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.style.backgroundColor = '#FFFFFF';
+        input.style.color = '#1F2937';
+        input.style.border = '2px solid #6B7280';
+    });
+};
+
+// Apply styles immediately and on DOM ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', forceStyles);
+} else {
+    forceStyles();
 }
+
+// Force styles every 2 seconds to catch dynamically created elements
+setInterval(forceStyles, 2000);
 
 // Check if Recharts is available
 const isRechartsAvailable = () => {

@@ -28,6 +28,44 @@
         }
       }
     </script>
+    
+    <!-- Force dropdown styles -->
+    <style>
+      /* Ultra high specificity styles for dropdowns */
+      html body div select,
+      html body form select,
+      html body select {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 2px solid #6B7280 !important;
+        -webkit-appearance: none !important;
+        -moz-appearance: none !important;
+        appearance: none !important;
+      }
+      
+      html body div select option,
+      html body form select option,
+      html body select option {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        padding: 8px 12px !important;
+      }
+      
+      html body div input,
+      html body form input,
+      html body input,
+      html body textarea {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 2px solid #6B7280 !important;
+      }
+      
+      html body input::placeholder,
+      html body textarea::placeholder {
+        color: #6B7280 !important;
+        opacity: 1 !important;
+      }
+    </style>
     <!-- React CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
