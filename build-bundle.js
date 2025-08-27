@@ -1,4 +1,4 @@
-// Script para generar app-bundle.js sin declaraciones duplicadas
+// Script para generar app-bundle.js completo desde archivos fuente
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,59 +7,88 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Ruta al archivo app-bundle.js original
-const appBundlePath = path.join(__dirname, 'public', 'app-bundle.js');
-
-// Leer el contenido del archivo
-let content = fs.readFileSync(appBundlePath, 'utf8');
-
-// Buscar y eliminar declaraciones duplicadas de FormInput, FormSelect y FormTextarea
-const formComponentRegex = /const (FormInput|FormSelect|FormTextarea) = \(\{ [^}]*\}\) => \([\s\S]*?\);/g;
-
-// Encontrar todas las declaraciones
-const declarations = [];
-let match;
-while ((match = formComponentRegex.exec(content)) !== null) {
-  declarations.push({
-    component: match[1],
-    fullMatch: match[0],
-    index: match.index
-  });
-}
-
-// Buscar y eliminar declaraciones duplicadas de getStatusColor
-const statusColorRegex = /const (getStatusColor) = \(([^)]*)\) => \{[\s\S]*?\};/g;
-while ((match = statusColorRegex.exec(content)) !== null) {
-  declarations.push({
-    component: match[1],
-    fullMatch: match[0],
-    index: match.index
-  });
-}
-
-// Agrupar por tipo de componente
-const componentGroups = {};
-declarations.forEach(decl => {
-  if (!componentGroups[decl.component]) {
-    componentGroups[decl.component] = [];
-  }
-  componentGroups[decl.component].push(decl);
-});
-
-// Eliminar declaraciones duplicadas (mantener solo la primera de cada tipo)
-Object.values(componentGroups).forEach(group => {
-  if (group.length > 1) {
-    // Ordenar por índice en orden descendente para eliminar desde el final
-    group.sort((a, b) => b.index - a.index);
+// Función para leer archivo y procesar imports
+function processFile(filePath) {
+    let content = fs.readFileSync(filePath, 'utf8');
     
-    // Mantener la primera declaración, eliminar el resto
-    for (let i = 0; i < group.length - 1; i++) {
-      content = content.replace(group[i].fullMatch, '');
+    // Remover imports de React (ya están globalmente disponibles)
+    content = content.replace(/import React.*from.*['"']react['"'];?\n?/g, '');
+    content = content.replace(/import \{[^}]*\}.*from.*['"']react['"'];?\n?/g, '');
+    
+    // Convertir imports relativos a referencias de variables globales
+    content = content.replace(/import.*from\s+['"]\.\/contexts\/AppContext\.js['"];?\n?/g, '');
+    content = content.replace(/import.*from\s+['"]\.\/shared\/.*['"];?\n?/g, '');
+    content = content.replace(/import.*from\s+['"]\.\/.*['"];?\n?/g, '');
+    
+    // Remover export default
+    content = content.replace(/export default.*;?\n?$/gm, '');
+    
+    return content;
+}
+
+// Orden de archivos para el bundle
+const fileOrder = [
+    'public/constants.js',
+    'public/contexts/AppContext.js', 
+    'public/hooks/useAppData.js',
+    'public/utils/StatusUtils.js',
+    'public/services/geminiService.js',
+    'public/config/trainingConfig.js',
+    'public/components/shared/Spinner.js',
+    'public/components/shared/Skeleton.js',
+    'public/components/shared/Card.js',
+    'public/components/shared/Modal.js',
+    'public/components/FormComponents.js',
+    'public/components/Header.js',
+    'public/components/Sidebar.js',
+    'public/components/Dashboard.js',
+    'public/components/Clients.js',
+    'public/components/ClientDetailModal.js',
+    'public/components/ClientEditModal.js',
+    'public/components/Trainings.js',
+    'public/components/TrainingEditModal.js',
+    'public/components/TrainingSummary.js',
+    'public/components/Calendar.js',
+    'public/components/Checklists.js',
+    'public/components/Ecommerce.js',
+    'public/components/EcommerceEditModal.js',
+    'public/components/AppPedido.js',
+    'public/components/AppPedidoEditModal.js',
+    'public/components/Kos.js',
+    'public/components/KosEditModal.js',
+    'public/components/Settings.js',
+    'public/components/ConfigOptionEditModal.js',
+    'public/components/GeneralAnalysisModal.js',
+    'public/App.js',
+    'public/index.js'
+];
+
+// Generar el bundle
+let bundleContent = `// PM Gestor Pro - Bundle
+// Generated automatically - Do not edit manually
+
+// React hooks destructuring
+const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
+const { createRoot } = ReactDOM;
+
+
+`;
+
+fileOrder.forEach(filePath => {
+    const fullPath = path.join(__dirname, filePath);
+    
+    if (fs.existsSync(fullPath)) {
+        const processedContent = processFile(fullPath);
+        bundleContent += `// === ${filePath} ===\n`;
+        bundleContent += processedContent;
+        bundleContent += '\n\n';
+    } else {
+        console.warn(`Warning: File not found: ${filePath}`);
     }
-  }
 });
 
-// Escribir el contenido modificado de vuelta al archivo
-fs.writeFileSync(appBundlePath, content, 'utf8');
+// Escribir el bundle
+const bundlePath = path.join(__dirname, 'public', 'app-bundle.js');
+fs.writeFileSync(bundlePath, bundleContent, 'utf8');
 
-console.log('app-bundle.js ha sido actualizado correctamente.');
+console.log('app-bundle.js ha sido generado correctamente.');

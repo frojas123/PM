@@ -7,6 +7,7 @@ const { createRoot } = ReactDOM;
 
 
 // === public/constants.js ===
+
 // Definir navItems como variable global
 const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <i className="fas fa-chart-pie"></i> },
@@ -21,9 +22,12 @@ const navItems = [
 ];
 
 // === public/contexts/AppContext.js ===
+
+
+
 const AppContext = createContext(undefined);
 
-const AppProvider = ({ children, initialData }) => {
+export const AppProvider = ({ children, initialData }) => {
     const [data, setData] = useState(initialData);
 
     const recalculateDashboardStats = (clients, trainings) => {
@@ -147,7 +151,7 @@ const AppProvider = ({ children, initialData }) => {
     return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-const useAppContext = () => {
+export const useAppContext = () => {
     const context = useContext(AppContext);
     if (context === undefined) {
         throw new Error('useAppContext must be used within an AppProvider');
@@ -156,6 +160,9 @@ const useAppContext = () => {
 };
 
 // === public/hooks/useAppData.js ===
+
+
+
 const mockClients = [
     { id: 'C001', legalName: 'Tech Solutions S.A.', fantasyName: 'TechSolve', status: 'Activo', industry: 'Tecnología', registrationDate: '2023-01-15', expectedGoLiveDate: '2023-03-01', actualGoLiveDate: '2023-02-25', licenses: 50, connectionType: 'API', contractType: 'Anual', databaseName: 'db_techsolve', emissionModel: 'El comprobante electrónico siempre como boleta electrónica', observations: 'Cliente estratégico, requiere seguimiento especial.', clientEmail: 'contacto@techsolve.com', email2: 'soporte@techsolve.com', email3: '', asanaLink: '#', crmLink: '#', freezeDate: null, freezeReason: null, freezeDetails: null, checklistState: { tecnico: ['tec_01', 'tec_02', 'tec_03', 'tec_04', 'tec_05', 'tec_06', 'tec_07', 'tec_08', 'tec_09', 'tec_10', 'tec_11', 'tec_12', 'tec_13', 'tec_14', 'tec_15', 'tec_16', 'tec_17', 'tec_18', 'tec_19', 'tec_20'], pm: ['pm_01', 'pm_02', 'pm_03', 'pm_04', 'pm_05', 'pm_06', 'pm_07', 'pm_08', 'pm_09', 'pm_10'], general: ['gen_01', 'gen_02', 'gen_03', 'gen_04', 'gen_05', 'gen_06', 'gen_07'], validacion: ['val_01', 'val_02', 'val_03', 'val_04', 'val_05'], seguimiento: ['seg_01'] }, appPedidoDetails: { licenses: 20, imeis: ['IMEI12345678901', 'IMEI12345678902', 'IMEI12345678903'] } },
     { id: 'C002', legalName: 'Gourmet Foods Ltda.', fantasyName: 'Gourmet Market', status: 'Implementación', industry: 'Alimentos', registrationDate: '2023-05-20', expectedGoLiveDate: '2023-08-01', actualGoLiveDate: null, licenses: 25, connectionType: 'FTP', contractType: 'Mensual', databaseName: 'db_gourmet', emissionModel: 'Las boletas electrónicas son válidas para todo evento', observations: '', clientEmail: 'admin@gourmet.cl', email2: '', email3: '', asanaLink: '#', crmLink: '#', freezeDate: null, freezeReason: null, freezeDetails: null, checklistState: { tecnico: ['tec_01', 'tec_02', 'tec_05', 'tec_06'], pm: ['pm_01', 'pm_02'], general: [], validacion: [], seguimiento: [] }, ecommerceDetails: { host: 'Shopify', configStatus: 'En Progreso', url: 'https://gourmetmarket.shop', hostingStatus: 'Contratado', hostingManagedBy: 'Nosotros' } },
@@ -379,9 +386,432 @@ const useAppData = () => {
     return { data, loading };
 };
 
-useAppData;
+
+
+// === public/utils/StatusUtils.js ===
+// Utilidades para manejar estados y colores
+
+export const getStatusColor = (status, settings) => {
+    // Si se proporcionan settings, buscar el color en la configuración
+    if (settings?.trainingStatuses) {
+        const statusConfig = settings.trainingStatuses.find(s => s.name === status);
+        if (statusConfig) return statusConfig.color;
+    }
+    
+    // Colores por defecto para estados comunes
+    switch (status) {
+        case 'Completado':
+        case 'Activo':
+            return 'bg-green-500';
+        case 'Pendiente':
+            return 'bg-yellow-500';
+        case 'Cancelado':
+            return 'bg-red-500';
+        default:
+            return 'bg-gray-500';
+    }
+};
+
+export const getStatusTextColor = (status, settings) => {
+    const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
+    return statusConfig ? statusConfig.textColor : 'text-white';
+};
+
+// === public/services/geminiService.js ===
+
+// Gemini API integration
+import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+const API_KEY = process.env.GEMINI_API_KEY || process.env.API_KEY;
+const genAI = new GoogleGenerativeAI(API_KEY);
+
+/**
+ * Generates a concise summary for a client using a simulated Gemini API call.
+ * 
+ * @param client - The client object to summarize.
+ * @returns A promise that resolves to a string containing the client summary.
+ */
+export const generateClientSummary = async (client) => {
+    console.log("Generating client summary with Gemini API...");
+
+    const prompt = `
+        Crea un resumen breve y profesional para el siguiente cliente de gestión de proyectos.
+        Destaca su rubro, estado y fechas clave.
+        
+        Nombre Cliente: ${client.fantasyName} (${client.legalName})
+        Rubro: ${client.industry}
+        Estado: ${client.status}
+        Fecha de Registro: ${client.registrationDate}
+        Salida a Producción Esperada: ${client.expectedGoLiveDate}
+        ${client.freezeReason ? `Motivo de Congelación: ${client.freezeReason}` : ''}
+    `;
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Error generating summary with Gemini:", error);
+        // Fallback a respuesta simulada si falla la API
+        return `${client.fantasyName}, un cliente del sector ${client.industry}, se encuentra actualmente ${client.status.toLowerCase()}. Se registró el ${new Date(client.registrationDate).toLocaleDateString()} con una fecha de salida a producción esperada para el ${new Date(client.expectedGoLiveDate).toLocaleDateString()}.`;
+    }
+};
+
+
+/**
+ * Generates a strategic overview of the entire client portfolio.
+ * 
+ * @param clients - An array of all client objects.
+ * @returns A promise that resolves to a string with the overall analysis.
+ */
+export const generateOverallClientAnalysis = async (clients) => {
+    console.log("Generating overall client analysis with Gemini API...");
+
+    const clientDataSummary = clients.map(c =>
+        `- ${c.fantasyName} (Estado: ${c.status}, Rubro: ${c.industry})`
+    ).join('\n');
+
+    const prompt = `
+        Analiza la siguiente cartera de clientes de un sistema de gestión de proyectos. 
+        Proporciona un resumen estratégico en español que incluya:
+        1.  **Salud General:** Una evaluación general del estado de los clientes (e.g., "la mayoría activos", "riesgo por muchos en pausa").
+        2.  **Distribución Clave:** Menciona la distribución de clientes por estado y por rubro.
+        3.  **Riesgos Potenciales:** Identifica clientes o tendencias que representen un riesgo (e.g., clientes importantes en pausa, implementaciones estancadas).
+        4.  **Oportunidades:** Sugiere posibles oportunidades (e.g., "ofrecer el servicio de Ecommerce a clientes del rubro Retail", "reactivar clientes en pausa").
+        
+        Aquí está la lista de clientes:
+        ${clientDataSummary}
+    `;
+
+    try {
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+    } catch (error) {
+        console.error("Error generating overall analysis with Gemini:", error);
+
+        // Fallback a respuesta simulada si falla la API
+        const total = clients.length;
+        const active = clients.filter(c => c.status === 'Activo').length;
+        const implementing = clients.filter(c => c.status === 'Implementación').length;
+        const paused = clients.filter(c => c.status === 'En Pausa').length;
+        const industries = [...new Set(clients.map(c => c.industry))];
+
+        return `**Análisis General de la Cartera de Clientes**
+
+**1. Salud General:**
+La cartera presenta ${active} de ${total} clientes activos (${Math.round((active / total) * 100)}%). ${paused > 0 ? `Hay ${paused} cliente(s) en pausa que requieren atención.` : 'No hay clientes en pausa.'} ${implementing > 0 ? `${implementing} cliente(s) en implementación.` : ''}
+
+**2. Distribución por Rubro:**
+${industries.join(', ')}
+
+**3. Recomendaciones:**
+- Priorizar la finalización de implementaciones
+- Desarrollar plan de reactivación para clientes en pausa
+- Evaluar oportunidades de cross-selling por rubro`;
+    }
+};
+
+// === public/config/trainingConfig.js ===
+// Configuración escalable para el sistema de capacitaciones
+// Este archivo permite configurar fácilmente nuevos tipos, servicios y temas de capacitación
+
+export const TRAINING_CONFIG = {
+    // Configuración de tipos de capacitación
+    types: {
+        PM: {
+            name: 'PM',
+            description: 'Capacitaciones de Project Manager',
+            color: 'bg-blue-500',
+            defaultDuration: 120,
+            icon: 'fa-project-diagram'
+        },
+        GENERAL: {
+            name: 'General',
+            description: 'Capacitaciones generales del sistema',
+            color: 'bg-green-500',
+            defaultDuration: 90,
+            icon: 'fa-desktop'
+        },
+        TECNICO: {
+            name: 'Técnico',
+            description: 'Capacitaciones técnicas especializadas',
+            color: 'bg-purple-500',
+            defaultDuration: 180,
+            icon: 'fa-cogs'
+        },
+        SEGUIMIENTO: {
+            name: 'Seguimiento',
+            description: 'Sesiones de seguimiento post-implementación',
+            color: 'bg-orange-500',
+            defaultDuration: 60,
+            icon: 'fa-chart-line'
+        }
+    },
+
+    // Configuración de servicios
+    services: {
+        GENERAL: {
+            name: 'General',
+            description: 'Servicios generales del sistema',
+            icon: 'fa-desktop',
+            color: 'text-blue-500'
+        },
+        ECOMMERCE: {
+            name: 'Ecommerce',
+            description: 'Servicios de comercio electrónico',
+            icon: 'fa-shopping-cart',
+            color: 'text-green-500'
+        },
+        APP_PEDIDO: {
+            name: 'App Pedido',
+            description: 'Aplicación de pedidos móviles',
+            icon: 'fa-mobile-alt',
+            color: 'text-purple-500'
+        },
+        KOS: {
+            name: 'KOS',
+            description: 'Sistema de gestión clínica',
+            icon: 'fa-laptop-medical',
+            color: 'text-red-500'
+        },
+        PM: {
+            name: 'PM',
+            description: 'Capacitaciones de Project Manager',
+            icon: 'fa-project-diagram',
+            color: 'text-orange-500'
+        }
+    },
+
+    // Configuración de estados
+    statuses: {
+        AGENDADA: {
+            name: 'AGENDADA',
+            description: 'Capacitación programada',
+            color: 'bg-yellow-500',
+            textColor: 'text-yellow-100',
+            icon: 'fa-calendar-check'
+        },
+        EN_PROCESO: {
+            name: 'EN PROCESO',
+            description: 'Capacitación en curso',
+            color: 'bg-blue-500',
+            textColor: 'text-blue-100',
+            icon: 'fa-spinner fa-spin'
+        },
+        REAGENDADA: {
+            name: 'REAGENDADA',
+            description: 'Capacitación reprogramada',
+            color: 'bg-orange-500',
+            textColor: 'text-orange-100',
+            icon: 'fa-history'
+        },
+        CANCELADA: {
+            name: 'CANCELADA',
+            description: 'Capacitación cancelada',
+            color: 'bg-red-500',
+            textColor: 'text-red-100',
+            icon: 'fa-times-circle'
+        },
+        COMPLETADA: {
+            name: 'COMPLETADA',
+            description: 'Capacitación finalizada',
+            color: 'bg-green-500',
+            textColor: 'text-green-100',
+            icon: 'fa-check-circle'
+        }
+    },
+
+    // Configuración de prioridades
+    priorities: {
+        ALTA: {
+            name: 'Alta',
+            description: 'Capacitación crítica',
+            color: 'text-red-500',
+            weight: 3
+        },
+        MEDIA: {
+            name: 'Media',
+            description: 'Capacitación importante',
+            color: 'text-yellow-500',
+            weight: 2
+        },
+        BAJA: {
+            name: 'Baja',
+            description: 'Capacitación opcional',
+            color: 'text-green-500',
+            weight: 1
+        }
+    },
+
+    // Plantillas de temas por servicio
+    topicTemplates: {
+        PM: [
+            {
+                name: 'Introducción al sistema y parámetros de producto',
+                duration: 120,
+                priority: 'Alta',
+                description: 'Capacitación inicial sobre el sistema y configuración de productos'
+            },
+            {
+                name: 'Capacitación Parametrización usuarios',
+                duration: 60,
+                priority: 'Media',
+                description: 'Configuración de usuarios y permisos del sistema'
+            },
+            {
+                name: 'Capacitación ventas',
+                duration: 180,
+                priority: 'Alta',
+                description: 'Proceso completo de ventas en el sistema'
+            },
+            {
+                name: 'Capacitación Inventario',
+                duration: 120,
+                priority: 'Alta',
+                description: 'Gestión de inventario y control de stock'
+            },
+            {
+                name: 'Capacitación Caja',
+                duration: 120,
+                priority: 'Alta',
+                description: 'Operación de caja y cierre diario'
+            }
+        ],
+        GENERAL: [
+            {
+                name: 'Uso Básico del Sistema',
+                duration: 90,
+                priority: 'Alta',
+                description: 'Navegación básica y funciones principales'
+            },
+            {
+                name: 'Gestión de Ventas',
+                duration: 120,
+                priority: 'Alta',
+                description: 'Proceso de ventas y facturación'
+            },
+            {
+                name: 'Inventario y Stock',
+                duration: 90,
+                priority: 'Media',
+                description: 'Control de inventario y movimientos de stock'
+            }
+        ],
+        ECOMMERCE: [
+            {
+                name: 'Configuración de Pasarelas de Pago',
+                duration: 90,
+                priority: 'Alta',
+                description: 'Configuración de métodos de pago online'
+            },
+            {
+                name: 'Carga Masiva de Productos',
+                duration: 75,
+                priority: 'Media',
+                description: 'Importación y gestión masiva de productos'
+            }
+        ],
+        APP_PEDIDO: [
+            {
+                name: 'Configuración de la App',
+                duration: 60,
+                priority: 'Alta',
+                description: 'Configuración inicial de la aplicación móvil'
+            },
+            {
+                name: 'Gestión de Menú Digital',
+                duration: 90,
+                priority: 'Media',
+                description: 'Administración del menú digital'
+            }
+        ],
+        KOS: [
+            {
+                name: 'Gestión de Fichas de Pacientes',
+                duration: 90,
+                priority: 'Alta',
+                description: 'Manejo de historias clínicas y fichas de pacientes'
+            },
+            {
+                name: 'Facturación de Prestaciones',
+                duration: 120,
+                priority: 'Alta',
+                description: 'Facturación de servicios médicos'
+            }
+        ]
+    },
+
+    // Configuración de notificaciones
+    notifications: {
+        reminderDays: [7, 3, 1], // Días antes para recordatorios
+        followUpDays: [1, 7, 30], // Días después para seguimiento
+        escalationHours: 24 // Horas para escalación si no hay respuesta
+    },
+
+    // Configuración de reportes
+    reports: {
+        defaultPeriods: ['7d', '30d', '90d', '1y'],
+        metrics: [
+            'totalTrainings',
+            'completionRate',
+            'averageDuration',
+            'clientSatisfaction',
+            'trainerEfficiency'
+        ]
+    }
+};
+
+// Funciones utilitarias para trabajar con la configuración
+export const getTrainingTypeConfig = (typeName) => {
+    return Object.values(TRAINING_CONFIG.types).find(type => type.name === typeName);
+};
+
+export const getServiceConfig = (serviceName) => {
+    return Object.values(TRAINING_CONFIG.services).find(service => service.name === serviceName);
+};
+
+export const getStatusConfig = (statusName) => {
+    return Object.values(TRAINING_CONFIG.statuses).find(status => status.name === statusName);
+};
+
+export const getPriorityConfig = (priorityName) => {
+    return Object.values(TRAINING_CONFIG.priorities).find(priority => priority.name === priorityName);
+};
+
+export const getTopicTemplates = (serviceName) => {
+    return TRAINING_CONFIG.topicTemplates[serviceName] || [];
+};
+
+// Función para generar configuración dinámica basada en los datos existentes
+export const generateDynamicConfig = (existingData) => {
+    const config = { ...TRAINING_CONFIG };
+    
+    // Agregar servicios dinámicos basados en datos existentes
+    if (existingData?.trainings) {
+        const uniqueServices = [...new Set(existingData.trainings.map(t => t.service))];
+        uniqueServices.forEach(service => {
+            if (!config.services[service.toUpperCase().replace(' ', '_')]) {
+                config.services[service.toUpperCase().replace(' ', '_')] = {
+                    name: service,
+                    description: `Servicio ${service}`,
+                    icon: 'fa-cog',
+                    color: 'text-gray-500'
+                };
+            }
+        });
+    }
+    
+    return config;
+};
+
+
 
 // === public/components/shared/Spinner.js ===
+
+
 const Spinner = () => {
     return (
         <div className="flex justify-center items-center">
@@ -390,9 +820,41 @@ const Spinner = () => {
     );
 };
 
-Spinner;
+
+
+// === public/components/shared/Skeleton.js ===
+
+
+export const Skeleton = ({ className }) => {
+  return (
+    <div className={`animate-pulse bg-slate-700 rounded-md ${className}`} />
+  );
+};
+
+
+// === public/components/shared/Card.js ===
+
+
+const Card = ({ icon, title, value, subtitle }) => {
+    return (
+        <div className="bg-secondary p-5 rounded-lg shadow-lg flex items-center space-x-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+            <div className="p-3 bg-primary rounded-full">
+                {icon}
+            </div>
+            <div>
+                <p className="text-sm text-slate-400 font-medium">{title}</p>
+                <p className="text-2xl font-bold text-light">{value}</p>
+                {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+            </div>
+        </div>
+    );
+};
+
+
 
 // === public/components/shared/Modal.js ===
+
+
 const Modal = ({ isOpen, onClose, title, children, footer }) => {
     if (!isOpen) return null;
 
@@ -424,199 +886,40 @@ const Modal = ({ isOpen, onClose, title, children, footer }) => {
     );
 };
 
-Modal;
 
-// === public/components/shared/Card.js ===
-const Card = ({ icon, title, value, subtitle }) => {
-    return (
-        <div className="bg-secondary p-5 rounded-lg shadow-lg flex items-center space-x-4 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-            <div className="p-3 bg-primary rounded-full">
-                {icon}
-            </div>
-            <div>
-                <p className="text-sm text-slate-400 font-medium">{title}</p>
-                <p className="text-2xl font-bold text-light">{value}</p>
-                {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
-            </div>
-        </div>
-    );
-};
 
-Card;
+// === public/components/FormComponents.js ===
+// Componentes de formulario compartidos
 
-// === public/components/TrainingSummary.js ===
-const TrainingSummary = ({ clientId = null, compact = false }) => {
-    const { data } = useAppContext();
-    
-    // Filtrar capacitaciones por cliente si se especifica
-    const trainings = clientId 
-        ? data.trainings.filter(t => t.clientId === clientId)
-        : data.trainings;
+const FormInput = ({ label, ...props }) => (
+    <div className="col-span-1">
+        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
+        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
+    </div>
+);
 
-    const now = new Date();
-    
-    // Calcular estadísticas
-    const stats = {
-        total: trainings.length,
-        upcoming: trainings.filter(t => 
-            new Date(t.dateTime) >= now && (t.status === 'AGENDADA' || t.status === 'REAGENDADA')
-        ).length,
-        completed: trainings.filter(t => t.status === 'COMPLETADA').length,
-        cancelled: trainings.filter(t => t.status === 'CANCELADA').length,
-        inProgress: trainings.filter(t => t.status === 'EN PROCESO').length,
-        totalHours: Math.round(trainings.reduce((acc, t) => acc + (t.duration || 0), 0) / 60)
-    };
+const FormSelect = ({ label, children, ...props }) => (
+    <div className="col-span-1">
+        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
+        <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
+            {children}
+        </select>
+    </div>
+);
 
-    // Próximas capacitaciones (las 3 más cercanas)
-    const upcomingTrainings = trainings
-        .filter(t => new Date(t.dateTime) >= now && (t.status === 'AGENDADA' || t.status === 'REAGENDADA'))
-        .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
-        .slice(0, 3);
+const FormTextarea = ({ label, ...props }) => (
+    <div className="col-span-1 md:col-span-2">
+        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
+        <textarea {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
+    </div>
+);
 
-    // Capacitaciones por prioridad
-    const priorityStats = {
-        alta: 0,
-        media: 0,
-        baja: 0
-    };
-
-    trainings.forEach(training => {
-        const topicConfig = data.settings?.trainingTopics?.find(t => t.name === training.topic);
-        if (topicConfig?.priority) {
-            priorityStats[topicConfig.priority.toLowerCase()] += 1;
-        }
-    });
-
-    if (compact) {
-        return (
-            <div className="bg-secondary p-4 rounded-lg">
-                <h4 className="text-lg font-semibold text-light mb-3">
-                    {clientId ? 'Capacitaciones del Cliente' : 'Resumen de Capacitaciones'}
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-accent">{stats.total}</div>
-                        <div className="text-slate-400">Total</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-yellow-400">{stats.upcoming}</div>
-                        <div className="text-slate-400">Próximas</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-                        <div className="text-slate-400">Completadas</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-bold text-purple-400">{stats.totalHours}h</div>
-                        <div className="text-slate-400">Total Horas</div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="bg-secondary p-6 rounded-lg shadow-lg">
-            <h3 className="text-xl font-semibold text-light mb-4">
-                {clientId ? 'Capacitaciones del Cliente' : 'Resumen de Capacitaciones'}
-            </h3>
-            
-            {/* Estadísticas principales */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                <div className="text-center p-3 bg-primary rounded-lg">
-                    <div className="text-2xl font-bold text-accent">{stats.total}</div>
-                    <div className="text-sm text-slate-400">Total</div>
-                </div>
-                <div className="text-center p-3 bg-primary rounded-lg">
-                    <div className="text-2xl font-bold text-yellow-400">{stats.upcoming}</div>
-                    <div className="text-sm text-slate-400">Próximas</div>
-                </div>
-                <div className="text-center p-3 bg-primary rounded-lg">
-                    <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
-                    <div className="text-sm text-slate-400">Completadas</div>
-                </div>
-                <div className="text-center p-3 bg-primary rounded-lg">
-                    <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
-                    <div className="text-sm text-slate-400">En Proceso</div>
-                </div>
-                <div className="text-center p-3 bg-primary rounded-lg">
-                    <div className="text-2xl font-bold text-purple-400">{stats.totalHours}h</div>
-                    <div className="text-sm text-slate-400">Total Horas</div>
-                </div>
-            </div>
-
-            {/* Estadísticas por prioridad */}
-            <div className="mb-6">
-                <h4 className="text-lg font-semibold text-light mb-3">Por Prioridad</h4>
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center p-2 bg-primary rounded">
-                        <div className="text-lg font-bold text-red-400">{priorityStats.alta}</div>
-                        <div className="text-xs text-slate-400">Alta</div>
-                    </div>
-                    <div className="text-center p-2 bg-primary rounded">
-                        <div className="text-lg font-bold text-yellow-400">{priorityStats.media}</div>
-                        <div className="text-xs text-slate-400">Media</div>
-                    </div>
-                    <div className="text-center p-2 bg-primary rounded">
-                        <div className="text-lg font-bold text-green-400">{priorityStats.baja}</div>
-                        <div className="text-xs text-slate-400">Baja</div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Próximas capacitaciones */}
-            {upcomingTrainings.length > 0 && (
-                <div>
-                    <h4 className="text-lg font-semibold text-light mb-3">Próximas Capacitaciones</h4>
-                    <div className="space-y-2">
-                        {upcomingTrainings.map(training => {
-                            const trainingDate = new Date(training.dateTime);
-                            const topicConfig = data.settings?.trainingTopics?.find(t => t.name === training.topic);
-                            const priorityColor = topicConfig?.priority === 'Alta' ? 'text-red-400' :
-                                                 topicConfig?.priority === 'Media' ? 'text-yellow-400' : 'text-green-400';
-                            
-                            return (
-                                <div key={training.id} className="flex justify-between items-center p-3 bg-primary rounded-lg">
-                                    <div>
-                                        <div className="font-semibold text-light">{training.topic}</div>
-                                        <div className="text-sm text-slate-400">
-                                            {!clientId && `${training.clientFantasyName} - `}
-                                            {training.responsible} - {training.duration} min
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <div className="text-sm font-semibold text-accent">
-                                            {trainingDate.toLocaleDateString('es-ES')}
-                                        </div>
-                                        <div className="text-xs text-slate-400">
-                                            {trainingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </div>
-                                        {topicConfig?.priority && (
-                                            <div className={`text-xs font-semibold ${priorityColor}`}>
-                                                {topicConfig.priority}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
-
-            {stats.total === 0 && (
-                <div className="text-center py-8 text-slate-400">
-                    <i className="fas fa-chalkboard-teacher text-4xl mb-4"></i>
-                    <p>No hay capacitaciones registradas</p>
-                </div>
-            )}
-        </div>
-    );
-};
-
-TrainingSummary;
+export { FormInput, FormSelect, FormTextarea };
 
 // === public/components/Header.js ===
+
+
+
 const Header = ({ toggleSidebar, isSidebarCollapsed, title }) => {
     return (
         <header className="flex-shrink-0 h-20 bg-primary flex items-center justify-between px-4 md:px-6 shadow-md z-10">
@@ -641,9 +944,13 @@ const Header = ({ toggleSidebar, isSidebarCollapsed, title }) => {
     );
 };
 
-Header;
+
 
 // === public/components/Sidebar.js ===
+
+
+import { navItems } from '../constants.js';
+
 const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
     return (
         <aside className={`fixed top-0 left-0 h-full bg-primary text-light flex flex-col shadow-lg transition-all duration-300 ease-in-out ${isCollapsed ? 'w-[60px]' : 'w-64'}`}>
@@ -684,12 +991,67 @@ const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
     );
 };
 
-Sidebar;
+
 
 // === public/components/Dashboard.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const COLORS = ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'];
 
 const Dashboard = () => {
+    const [rechartsLoaded, setRechartsLoaded] = React.useState(false);
+    
+    // Verificar si Recharts está disponible
+    const isRechartsLoaded = window.Recharts && 
+        window.Recharts.BarChart && 
+        window.Recharts.ResponsiveContainer;
+    
+    // Effect para detectar cuando Recharts se carga
+    React.useEffect(() => {
+        // Verificar si ya está cargado
+        if (window.RECHARTS_LOADED || isRechartsLoaded) {
+            setRechartsLoaded(true);
+        } else {
+            // Escuchar el evento personalizado de carga
+            const handleRechartsLoad = () => {
+                if (window.Recharts && window.Recharts.BarChart && window.Recharts.ResponsiveContainer) {
+                    setRechartsLoaded(true);
+                }
+            };
+            
+            window.addEventListener('rechartsLoaded', handleRechartsLoad);
+            
+            // Fallback: verificar cada 200ms por 10 segundos máximo
+            let attempts = 0;
+            const maxAttempts = 50; // 10 segundos
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (window.Recharts && window.Recharts.BarChart && window.Recharts.ResponsiveContainer) {
+                    setRechartsLoaded(true);
+                    clearInterval(checkInterval);
+                } else if (attempts >= maxAttempts) {
+                    console.warn('Recharts no se pudo cargar después de 10 segundos');
+                    clearInterval(checkInterval);
+                }
+            }, 200);
+            
+            return () => {
+                window.removeEventListener('rechartsLoaded', handleRechartsLoad);
+                clearInterval(checkInterval);
+            };
+        }
+    }, [isRechartsLoaded]);
+    
+    // Desestructurar componentes solo si están disponibles
+    const {
+        BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+        Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+    } = (rechartsLoaded && isRechartsLoaded) ? window.Recharts : {};
+    
+    const chartsAvailable = rechartsLoaded && isRechartsLoaded;
     const { data } = useAppContext();
     const { dashboardStats } = data;
 
@@ -754,39 +1116,57 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Estado de Clientes</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={dashboardStats.clientsByStatus}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={120}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                                {dashboardStats.clientsByStatus.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} clientes`, '']} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={dashboardStats.clientsByStatus}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={120}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {dashboardStats.clientsByStatus.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} clientes`, '']} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-pie text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Clientes por Rubro</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={dashboardStats.clientsByIndustry} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
-                            <XAxis dataKey="name" stroke="#ecf0f1" />
-                            <YAxis stroke="#ecf0f1" />
-                            <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
-                            <Legend />
-                            <Bar dataKey="value" name="Nº Clientes" fill="#3498db" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={dashboardStats.clientsByIndustry} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
+                                <XAxis dataKey="name" stroke="#ecf0f1" />
+                                <YAxis stroke="#ecf0f1" />
+                                <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
+                                <Legend />
+                                <Bar dataKey="value" name="Nº Clientes" fill="#3498db" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-bar text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -794,57 +1174,73 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Capacitaciones por Estado</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={trainingsByStatus}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={120}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                                {trainingsByStatus.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} capacitaciones`, '']} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={trainingsByStatus}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={120}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {trainingsByStatus.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} capacitaciones`, '']} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-pie text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Capacitaciones por Servicio</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={trainingsByService} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
-                            <XAxis dataKey="name" stroke="#ecf0f1" />
-                            <YAxis stroke="#ecf0f1" />
-                            <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
-                            <Legend />
-                            <Bar dataKey="value" name="Nº Capacitaciones" fill="#9b59b6" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={trainingsByService} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
+                                <XAxis dataKey="name" stroke="#ecf0f1" />
+                                <YAxis stroke="#ecf0f1" />
+                                <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
+                                <Legend />
+                                <Bar dataKey="value" name="Nº Capacitaciones" fill="#9b59b6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-bar text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
     );
 };
 
-Dashboard;
+
 
 // === public/components/Clients.js ===
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'Activo': return 'bg-green-500';
-        case 'Implementación': return 'bg-yellow-500';
-        case 'En Pausa': return 'bg-orange-500';
-        case 'Inactivo': return 'bg-red-500';
-        default: return 'bg-gray-500';
-    }
-};
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
+
+import { getStatusColor } from '../utils/StatusUtils.js';
 
 const Clients = () => {
     const { data, saveClient } = useAppContext();
@@ -1008,9 +1404,14 @@ const Clients = () => {
     );
 };
 
-Clients;
+
 
 // === public/components/ClientDetailModal.js ===
+
+
+import { generateClientSummary } from '../services/geminiService.js';
+
+
 const DetailItem = ({ label, value, isLink = false }) => (
     <div>
         <p className="text-xs text-slate-400">{label}</p>
@@ -1112,9 +1513,14 @@ const ClientDetailModal = ({ isOpen, onClose, client }) => {
     );
 };
 
-ClientDetailModal;
+
 
 // === public/components/ClientEditModal.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const newClientTemplate = {
     legalName: '', fantasyName: '', status: 'Implementación', industry: '',
     connectionType: '', contractType: '', registrationDate: new Date().toISOString().split('T')[0],
@@ -1123,10 +1529,6 @@ const newClientTemplate = {
     asanaLink: '', crmLink: '', freezeDate: null, freezeReason: null, freezeDetails: null,
     checklistState: {},
 };
-
-
-
-
 
 
 
@@ -1231,189 +1633,14 @@ const ClientEditModal = ({ isOpen, onClose, clientToEdit, onSave }) => {
     );
 };
 
-ClientEditModal;
 
-// === public/components/TrainingEditModal.js ===
-const newTrainingTemplate = {
-    clientId: '',
-    type: 'General',
-    service: 'General',
-    topic: '',
-    responsible: '',
-    dateTime: new Date().toISOString().slice(0, 16),
-    duration: 60,
-    notes: '',
-    status: 'AGENDADA',
-    priority: 'Media'
-};
-
-
-
-
-
-const FormTextarea = ({ label, ...props }) => (
-     <div className="col-span-1 md:col-span-2">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
-
-const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
-    const [formData, setFormData] = useState(newTrainingTemplate);
-    const { data: appData } = useAppContext();
-
-    useEffect(() => {
-        if (isOpen) {
-            if (trainingToEdit) {
-                 setFormData({
-                    ...trainingToEdit,
-                    dateTime: new Date(trainingToEdit.dateTime).toISOString().slice(0, 16)
-                });
-            } else {
-                setFormData(newTrainingTemplate);
-            }
-        }
-    }, [trainingToEdit, isOpen]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        
-        setFormData(prev => {
-            const newState = { ...prev, [name]: value };
-            
-            // Resetear tema cuando cambia el servicio
-            if (name === 'service') {
-                newState.topic = '';
-            }
-            
-            // Auto-completar duración cuando se selecciona un tema
-            if (name === 'topic') {
-                const selectedTopic = appData.settings?.trainingTopics?.find(t => t.name === value);
-                if (selectedTopic && selectedTopic.duration) {
-                    newState.duration = selectedTopic.duration;
-                }
-                if (selectedTopic && selectedTopic.priority) {
-                    newState.priority = selectedTopic.priority;
-                }
-            }
-            
-            // Auto-completar duración por defecto cuando cambia el tipo
-            if (name === 'type') {
-                const selectedType = appData.settings?.trainingTypes?.find(t => t.name === value);
-                if (selectedType && selectedType.defaultDuration) {
-                    newState.duration = selectedType.defaultDuration;
-                }
-                newState.topic = '';
-            }
-            
-            return newState;
-        });
-    };
-    
-    const handleSubmit = () => {
-        const selectedClient = appData.clients.find(c => c.id === formData.clientId);
-        const trainingData = {
-            ...formData,
-            id: trainingToEdit?.id || `T${Date.now()}`,
-            clientFantasyName: selectedClient?.fantasyName || 'N/A',
-            duration: Number(formData.duration),
-        };
-        onSave(trainingData);
-    };
-
-    const topicOptions = useMemo(() => {
-        if (!appData?.settings?.trainingTopics) return [];
-        
-        // Filtrar temas por servicio seleccionado
-        return appData.settings.trainingTopics.filter(topic => 
-            topic.service === formData.service
-        );
-    }, [appData, formData.service]);
-
-    const selectedTopic = useMemo(() => {
-        return appData?.settings?.trainingTopics?.find(t => t.name === formData.topic);
-    }, [appData, formData.topic]);
-
-    return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
-            title={trainingToEdit ? 'Editar Capacitación' : 'Programar Nueva Capacitación'}
-            footer={
-                <>
-                    <button onClick={onClose} className="bg-slate-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-500 transition-colors">Cancelar</button>
-                    <button onClick={handleSubmit} className="bg-accent text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">Guardar</button>
-                </>
-            }
-        >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormSelect label="Cliente" name="clientId" value={formData.clientId} onChange={handleChange} className="md:col-span-2">
-                    <option value="">Seleccione un cliente</option>
-                    {appData.clients.map(c => <option key={c.id} value={c.id}>{c.fantasyName}</option>)}
-                </FormSelect>
-                
-                <FormSelect label="Tipo de Capacitación" name="type" value={formData.type} onChange={handleChange}>
-                    <option value="">Seleccione un tipo</option>
-                    {appData.settings?.trainingTypes?.map(t => (
-                        <option key={t.id} value={t.name}>{t.name} - {t.description}</option>
-                    ))}
-                </FormSelect>
-
-                <FormSelect label="Servicio" name="service" value={formData.service} onChange={handleChange}>
-                    <option value="">Seleccione un servicio</option>
-                    {appData.settings?.trainingServices?.map(s => (
-                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
-                    ))}
-                </FormSelect>
-                
-                <div className="md:col-span-2">
-                    <FormSelect label="Tema" name="topic" value={formData.topic} onChange={handleChange}>
-                        <option value="">Seleccione un tema</option>
-                        {topicOptions?.map(t => (
-                            <option key={t.id} value={t.name}>
-                                {t.name} ({t.duration} min - {t.priority})
-                            </option>
-                        ))}
-                    </FormSelect>
-                    {selectedTopic && (
-                        <div className="mt-2 p-2 bg-primary rounded text-sm text-slate-300">
-                            <div className="flex justify-between">
-                                <span>Duración sugerida: <strong>{selectedTopic.duration} min</strong></span>
-                                <span className={`font-semibold ${
-                                    selectedTopic.priority === 'Alta' ? 'text-red-400' :
-                                    selectedTopic.priority === 'Media' ? 'text-yellow-400' : 'text-green-400'
-                                }`}>
-                                    Prioridad: {selectedTopic.priority}
-                                </span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-                
-                <FormSelect label="Responsable" name="responsible" value={formData.responsible} onChange={handleChange}>
-                     <option value="">Seleccione responsable</option>
-                     {appData.settings?.users?.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
-                </FormSelect>
-
-                <FormSelect label="Estado" name="status" value={formData.status} onChange={handleChange}>
-                    <option value="">Seleccione un estado</option>
-                    {appData.settings?.trainingStatuses?.map(s => (
-                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
-                    ))}
-                </FormSelect>
-
-                <FormInput label="Fecha y Hora" name="dateTime" type="datetime-local" value={formData.dateTime} onChange={handleChange} />
-                <FormInput label="Duración (minutos)" name="duration" type="number" value={formData.duration} onChange={handleChange} />
-
-                <FormTextarea label="Observaciones" name="notes" value={formData.notes} onChange={handleChange} />
-            </div>
-        </Modal>
-    );
-};
-
-TrainingEditModal;
 
 // === public/components/Trainings.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const getStatusInfo = (status, settings) => {
     const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
     if (statusConfig) {
@@ -1726,15 +1953,364 @@ const Trainings = () => {
     );
 };
 
-Trainings;
+
+
+// === public/components/TrainingEditModal.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
+const newTrainingTemplate = {
+    clientId: '',
+    type: 'General',
+    service: 'General',
+    topic: '',
+    responsible: '',
+    dateTime: new Date().toISOString().slice(0, 16),
+    duration: 60,
+    notes: '',
+    status: 'AGENDADA',
+    priority: 'Media'
+};
+
+
+
+const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
+    const [formData, setFormData] = useState(newTrainingTemplate);
+    const { data: appData } = useAppContext();
+
+    useEffect(() => {
+        if (isOpen) {
+            if (trainingToEdit) {
+                 setFormData({
+                    ...trainingToEdit,
+                    dateTime: new Date(trainingToEdit.dateTime).toISOString().slice(0, 16)
+                });
+            } else {
+                setFormData(newTrainingTemplate);
+            }
+        }
+    }, [trainingToEdit, isOpen]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        
+        setFormData(prev => {
+            const newState = { ...prev, [name]: value };
+            
+            // Resetear tema cuando cambia el servicio
+            if (name === 'service') {
+                newState.topic = '';
+            }
+            
+            // Auto-completar duración cuando se selecciona un tema
+            if (name === 'topic') {
+                const selectedTopic = appData.settings?.trainingTopics?.find(t => t.name === value);
+                if (selectedTopic && selectedTopic.duration) {
+                    newState.duration = selectedTopic.duration;
+                }
+                if (selectedTopic && selectedTopic.priority) {
+                    newState.priority = selectedTopic.priority;
+                }
+            }
+            
+            // Auto-completar duración por defecto cuando cambia el tipo
+            if (name === 'type') {
+                const selectedType = appData.settings?.trainingTypes?.find(t => t.name === value);
+                if (selectedType && selectedType.defaultDuration) {
+                    newState.duration = selectedType.defaultDuration;
+                }
+                newState.topic = '';
+            }
+            
+            return newState;
+        });
+    };
+    
+    const handleSubmit = () => {
+        const selectedClient = appData.clients.find(c => c.id === formData.clientId);
+        const trainingData = {
+            ...formData,
+            id: trainingToEdit?.id || `T${Date.now()}`,
+            clientFantasyName: selectedClient?.fantasyName || 'N/A',
+            duration: Number(formData.duration),
+        };
+        onSave(trainingData);
+    };
+
+    const topicOptions = useMemo(() => {
+        if (!appData?.settings?.trainingTopics) return [];
+        
+        // Filtrar temas por servicio seleccionado
+        return appData.settings.trainingTopics.filter(topic => 
+            topic.service === formData.service
+        );
+    }, [appData, formData.service]);
+
+    const selectedTopic = useMemo(() => {
+        return appData?.settings?.trainingTopics?.find(t => t.name === formData.topic);
+    }, [appData, formData.topic]);
+
+    return (
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title={trainingToEdit ? 'Editar Capacitación' : 'Programar Nueva Capacitación'}
+            footer={
+                <>
+                    <button onClick={onClose} className="bg-slate-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-500 transition-colors">Cancelar</button>
+                    <button onClick={handleSubmit} className="bg-accent text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">Guardar</button>
+                </>
+            }
+        >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormSelect label="Cliente" name="clientId" value={formData.clientId} onChange={handleChange} className="md:col-span-2">
+                    <option value="">Seleccione un cliente</option>
+                    {appData.clients.map(c => <option key={c.id} value={c.id}>{c.fantasyName}</option>)}
+                </FormSelect>
+                
+                <FormSelect label="Tipo de Capacitación" name="type" value={formData.type} onChange={handleChange}>
+                    <option value="">Seleccione un tipo</option>
+                    {appData.settings?.trainingTypes?.map(t => (
+                        <option key={t.id} value={t.name}>{t.name} - {t.description}</option>
+                    ))}
+                </FormSelect>
+
+                <FormSelect label="Servicio" name="service" value={formData.service} onChange={handleChange}>
+                    <option value="">Seleccione un servicio</option>
+                    {appData.settings?.trainingServices?.map(s => (
+                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
+                    ))}
+                </FormSelect>
+                
+                <div className="md:col-span-2">
+                    <FormSelect label="Tema" name="topic" value={formData.topic} onChange={handleChange}>
+                        <option value="">Seleccione un tema</option>
+                        {topicOptions?.map(t => (
+                            <option key={t.id} value={t.name}>
+                                {t.name} ({t.duration} min - {t.priority})
+                            </option>
+                        ))}
+                    </FormSelect>
+                    {selectedTopic && (
+                        <div className="mt-2 p-2 bg-primary rounded text-sm text-slate-300">
+                            <div className="flex justify-between">
+                                <span>Duración sugerida: <strong>{selectedTopic.duration} min</strong></span>
+                                <span className={`font-semibold ${
+                                    selectedTopic.priority === 'Alta' ? 'text-red-400' :
+                                    selectedTopic.priority === 'Media' ? 'text-yellow-400' : 'text-green-400'
+                                }`}>
+                                    Prioridad: {selectedTopic.priority}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+                
+                <FormSelect label="Responsable" name="responsible" value={formData.responsible} onChange={handleChange}>
+                     <option value="">Seleccione responsable</option>
+                     {appData.settings?.users?.map(u => <option key={u.id} value={u.name}>{u.name}</option>)}
+                </FormSelect>
+
+                <FormSelect label="Estado" name="status" value={formData.status} onChange={handleChange}>
+                    <option value="">Seleccione un estado</option>
+                    {appData.settings?.trainingStatuses?.map(s => (
+                        <option key={s.id} value={s.name}>{s.name} - {s.description}</option>
+                    ))}
+                </FormSelect>
+
+                <FormInput label="Fecha y Hora" name="dateTime" type="datetime-local" value={formData.dateTime} onChange={handleChange} />
+                <FormInput label="Duración (minutos)" name="duration" type="number" value={formData.duration} onChange={handleChange} />
+
+                <FormTextarea label="Observaciones" name="notes" value={formData.notes} onChange={handleChange} />
+            </div>
+        </Modal>
+    );
+};
+
+
+
+// === public/components/TrainingSummary.js ===
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+const TrainingSummary = ({ clientId = null, compact = false }) => {
+    const { data } = useAppContext();
+    
+    // Filtrar capacitaciones por cliente si se especifica
+    const trainings = clientId 
+        ? data.trainings.filter(t => t.clientId === clientId)
+        : data.trainings;
+
+    const now = new Date();
+    
+    // Calcular estadísticas
+    const stats = {
+        total: trainings.length,
+        upcoming: trainings.filter(t => 
+            new Date(t.dateTime) >= now && (t.status === 'AGENDADA' || t.status === 'REAGENDADA')
+        ).length,
+        completed: trainings.filter(t => t.status === 'COMPLETADA').length,
+        cancelled: trainings.filter(t => t.status === 'CANCELADA').length,
+        inProgress: trainings.filter(t => t.status === 'EN PROCESO').length,
+        totalHours: Math.round(trainings.reduce((acc, t) => acc + (t.duration || 0), 0) / 60)
+    };
+
+    // Próximas capacitaciones (las 3 más cercanas)
+    const upcomingTrainings = trainings
+        .filter(t => new Date(t.dateTime) >= now && (t.status === 'AGENDADA' || t.status === 'REAGENDADA'))
+        .sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime))
+        .slice(0, 3);
+
+    // Capacitaciones por prioridad
+    const priorityStats = {
+        alta: 0,
+        media: 0,
+        baja: 0
+    };
+
+    trainings.forEach(training => {
+        const topicConfig = data.settings?.trainingTopics?.find(t => t.name === training.topic);
+        if (topicConfig?.priority) {
+            priorityStats[topicConfig.priority.toLowerCase()] += 1;
+        }
+    });
+
+    if (compact) {
+        return (
+            <div className="bg-secondary p-4 rounded-lg">
+                <h4 className="text-lg font-semibold text-light mb-3">
+                    {clientId ? 'Capacitaciones del Cliente' : 'Resumen de Capacitaciones'}
+                </h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-accent">{stats.total}</div>
+                        <div className="text-slate-400">Total</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-yellow-400">{stats.upcoming}</div>
+                        <div className="text-slate-400">Próximas</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
+                        <div className="text-slate-400">Completadas</div>
+                    </div>
+                    <div className="text-center">
+                        <div className="text-2xl font-bold text-purple-400">{stats.totalHours}h</div>
+                        <div className="text-slate-400">Total Horas</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="bg-secondary p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-semibold text-light mb-4">
+                {clientId ? 'Capacitaciones del Cliente' : 'Resumen de Capacitaciones'}
+            </h3>
+            
+            {/* Estadísticas principales */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+                <div className="text-center p-3 bg-primary rounded-lg">
+                    <div className="text-2xl font-bold text-accent">{stats.total}</div>
+                    <div className="text-sm text-slate-400">Total</div>
+                </div>
+                <div className="text-center p-3 bg-primary rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-400">{stats.upcoming}</div>
+                    <div className="text-sm text-slate-400">Próximas</div>
+                </div>
+                <div className="text-center p-3 bg-primary rounded-lg">
+                    <div className="text-2xl font-bold text-green-400">{stats.completed}</div>
+                    <div className="text-sm text-slate-400">Completadas</div>
+                </div>
+                <div className="text-center p-3 bg-primary rounded-lg">
+                    <div className="text-2xl font-bold text-blue-400">{stats.inProgress}</div>
+                    <div className="text-sm text-slate-400">En Proceso</div>
+                </div>
+                <div className="text-center p-3 bg-primary rounded-lg">
+                    <div className="text-2xl font-bold text-purple-400">{stats.totalHours}h</div>
+                    <div className="text-sm text-slate-400">Total Horas</div>
+                </div>
+            </div>
+
+            {/* Estadísticas por prioridad */}
+            <div className="mb-6">
+                <h4 className="text-lg font-semibold text-light mb-3">Por Prioridad</h4>
+                <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-2 bg-primary rounded">
+                        <div className="text-lg font-bold text-red-400">{priorityStats.alta}</div>
+                        <div className="text-xs text-slate-400">Alta</div>
+                    </div>
+                    <div className="text-center p-2 bg-primary rounded">
+                        <div className="text-lg font-bold text-yellow-400">{priorityStats.media}</div>
+                        <div className="text-xs text-slate-400">Media</div>
+                    </div>
+                    <div className="text-center p-2 bg-primary rounded">
+                        <div className="text-lg font-bold text-green-400">{priorityStats.baja}</div>
+                        <div className="text-xs text-slate-400">Baja</div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Próximas capacitaciones */}
+            {upcomingTrainings.length > 0 && (
+                <div>
+                    <h4 className="text-lg font-semibold text-light mb-3">Próximas Capacitaciones</h4>
+                    <div className="space-y-2">
+                        {upcomingTrainings.map(training => {
+                            const trainingDate = new Date(training.dateTime);
+                            const topicConfig = data.settings?.trainingTopics?.find(t => t.name === training.topic);
+                            const priorityColor = topicConfig?.priority === 'Alta' ? 'text-red-400' :
+                                                 topicConfig?.priority === 'Media' ? 'text-yellow-400' : 'text-green-400';
+                            
+                            return (
+                                <div key={training.id} className="flex justify-between items-center p-3 bg-primary rounded-lg">
+                                    <div>
+                                        <div className="font-semibold text-light">{training.topic}</div>
+                                        <div className="text-sm text-slate-400">
+                                            {!clientId && `${training.clientFantasyName} - `}
+                                            {training.responsible} - {training.duration} min
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-sm font-semibold text-accent">
+                                            {trainingDate.toLocaleDateString('es-ES')}
+                                        </div>
+                                        <div className="text-xs text-slate-400">
+                                            {trainingDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                        {topicConfig?.priority && (
+                                            <div className={`text-xs font-semibold ${priorityColor}`}>
+                                                {topicConfig.priority}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {stats.total === 0 && (
+                <div className="text-center py-8 text-slate-400">
+                    <i className="fas fa-chalkboard-teacher text-4xl mb-4"></i>
+                    <p>No hay capacitaciones registradas</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 
 // === public/components/Calendar.js ===
 
 
-const getStatusTextColor = (status, settings) => {
-    const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
-    return statusConfig ? statusConfig.textColor : 'text-white';
-};
+import { useAppContext } from '../contexts/AppContext.js';
+import { getStatusColor, getStatusTextColor } from '../utils/StatusUtils.js';
 
 const TrainingTooltip = ({ training, settings }) => {
     const statusConfig = settings?.trainingStatuses?.find(s => s.name === training.status);
@@ -1960,9 +2536,13 @@ const Calendar = () => {
     );
 };
 
-Calendar;
+
 
 // === public/components/Checklists.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
 const ChecklistDetailView = ({ client, onBack }) => {
     const { data, updateChecklistState } = useAppContext();
     const checklistData = data.settings.checklistData || [];
@@ -2090,9 +2670,14 @@ const Checklists = () => {
     );
 };
 
-Checklists;
+
+
 
 // === public/components/Ecommerce.js ===
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const getConfigStatusColor = (status) => {
     switch (status) {
         case 'Completado': return 'text-green-400';
@@ -2200,24 +2785,15 @@ const Ecommerce = () => {
     );
 };
 
-Ecommerce;
+
 
 // === public/components/EcommerceEditModal.js ===
-const FormInput = ({ label, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
-const FormSelect = ({ label, children, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
-            {children}
-        </select>
-    </div>
-);
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
+
 
 const EcommerceEditModal = ({ isOpen, onClose, client }) => {
     const { saveEcommerceDetails } = useAppContext();
@@ -2275,9 +2851,13 @@ const EcommerceEditModal = ({ isOpen, onClose, client }) => {
     );
 };
 
-EcommerceEditModal;
+
 
 // === public/components/AppPedido.js ===
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const AppPedido = () => {
     const { data } = useAppContext();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -2319,17 +2899,25 @@ const AppPedido = () => {
                                             <i className="fas fa-edit"></i>
                                         </button>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
-                                        <div>
-                                            <p className="text-slate-400 text-xs">Licencias Contratadas</p>
-                                            <p className="font-semibold text-2xl">{client.appPedidoDetails?.licenses}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
+                                            <p className="text-blue-400 text-sm font-medium mb-1">Licencias Contratadas</p>
+                                            <p className="font-bold text-3xl text-blue-300">{client.appPedidoDetails?.licenses || 0}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-slate-400 text-xs">IMEIs con Licencia</p>
-                                            <div className="text-xs bg-secondary p-2 rounded-md max-h-20 overflow-y-auto">
+                                        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                                            <p className="text-green-400 text-sm font-medium mb-2">IMEIs Registrados</p>
+                                            <div className="space-y-1">
                                                 {client.appPedidoDetails?.imeis && client.appPedidoDetails.imeis.length > 0 ? (
-                                                    client.appPedidoDetails.imeis.map(imei => <div key={imei}>{imei}</div>)
-                                                ) : <p className="text-slate-500">Sin IMEIs</p>}
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {client.appPedidoDetails.imeis.map((imei, index) => (
+                                                            <span key={index} className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-mono">
+                                                                {imei}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-slate-500 text-sm italic">Sin IMEIs registrados</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -2359,9 +2947,12 @@ const AppPedido = () => {
     );
 };
 
-AppPedido;
+
 
 // === public/components/AppPedidoEditModal.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
 
 
 
@@ -2408,17 +2999,40 @@ const AppPedidoEditModal = ({ isOpen, onClose, client }) => {
                 </>
             }
         >
-            <div className="space-y-4">
-                <FormInput label="Licencias" name="licenses" type="number" value={formData.licenses} onChange={handleFormChange} />
-                <FormTextarea label="IMEIs (uno por línea)" rows={5} value={imeiText} onChange={handleImeiChange} />
+            <div className="space-y-6">
+                <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
+                    <FormInput label="Número de Licencias" name="licenses" type="number" value={formData.licenses} onChange={handleFormChange} />
+                </div>
+                
+                <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                    <label className="block text-sm font-medium text-green-300 mb-3">
+                        <i className="fas fa-mobile-alt mr-2"></i>
+                        IMEIs de Dispositivos (uno por línea)
+                    </label>
+                    <FormTextarea 
+                        placeholder="Ingrese los IMEIs de los dispositivos, uno por línea..." 
+                        rows={6} 
+                        value={imeiText} 
+                        onChange={handleImeiChange} 
+                        className="bg-slate-800/50 border-green-500/30 focus:border-green-500 focus:ring-green-500 font-mono text-sm"
+                    />
+                    <p className="text-xs text-slate-400 mt-2">
+                        <i className="fas fa-info-circle mr-1"></i>
+                        Cada IMEI debe estar en una línea separada
+                    </p>
+                </div>
             </div>
         </Modal>
     );
 };
 
-AppPedidoEditModal;
+
 
 // === public/components/Kos.js ===
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const Kos = () => {
     const { data } = useAppContext();
     const [isEditModalOpen, setEditModalOpen] = useState(false);
@@ -2497,9 +3111,13 @@ const Kos = () => {
     );
 };
 
-Kos;
+
 
 // === public/components/KosEditModal.js ===
+
+
+import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 
@@ -2545,107 +3163,48 @@ const KosEditModal = ({ isOpen, onClose, client }) => {
     );
 };
 
-KosEditModal;
 
-// === public/components/ConfigOptionEditModal.js ===
-const newOptionTemplate = {
-    name: '',
-    description: '',
-};
-
-
-
-
-
-
-const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title }) => {
-    const [formData, setFormData] = useState(newOptionTemplate);
-
-    useEffect(() => {
-        if (isOpen) {
-            if (optionToEdit) {
-                setFormData({
-                    name: optionToEdit.name,
-                    description: optionToEdit.description || '',
-                });
-            } else {
-                setFormData(newOptionTemplate);
-            }
-        }
-    }, [optionToEdit, isOpen]);
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-    };
-
-    const handleSubmit = () => {
-        const optionData = {
-            id: optionToEdit?.id || `new_${Date.now()}`,
-            name: formData.name,
-            description: formData.description,
-        };
-        onSave(optionData);
-    };
-
-    return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
-            title={title}
-            footer={
-                <>
-                    <button onClick={onClose} className="bg-slate-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-500 transition-colors">Cancelar</button>
-                    <button onClick={handleSubmit} className="bg-accent text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">Guardar</button>
-                </>
-            }
-        >
-           <div className="space-y-4">
-                <FormInput 
-                    label="Nombre"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                />
-                <FormTextarea
-                    label="Descripción (Opcional)"
-                    name="description"
-                    value={formData.description}
-                    onChange={handleChange}
-                />
-           </div>
-        </Modal>
-    );
-};
-
-ConfigOptionEditModal;
 
 // === public/components/Settings.js ===
+
+import { useAppContext } from '../contexts/AppContext.js';
+
+
 const ConfigList = ({ title, items, onEdit, onAdd, onDelete }) => {
     return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-light">{title}</h3>
-                <button onClick={onAdd} className="bg-accent text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">
+        <div className="bg-primary/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-light flex items-center">
+                    <i className="fas fa-cog mr-2 text-accent"></i>
+                    {title}
+                </h3>
+                <button onClick={onAdd} className="bg-accent hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105">
                     <i className="fas fa-plus mr-2"></i> Añadir Nuevo
                 </button>
             </div>
-            <div className="bg-primary rounded-lg shadow-inner">
-                <ul className="divide-y divide-slate-700">
-                    {items.map(item => (
-                        <li key={item.id} className="p-4 flex justify-between items-center hover:bg-slate-700/50 transition-colors">
-                            <div>
-                                <p className="font-medium text-light">{item.name}</p>
-                                {item.description && <p className="text-xs text-slate-400 mt-1">{item.description}</p>}
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => onEdit(item)} className="text-slate-400 hover:text-accent transition-colors p-1" aria-label={`Editar ${item.name}`}><i className="fas fa-edit"></i></button>
-                                <button onClick={() => onDelete(item)} className="text-slate-400 hover:text-red-500 transition-colors p-1" aria-label={`Eliminar ${item.name}`}><i className="fas fa-trash"></i></button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+            <div className="space-y-3">
+                {items.map(item => (
+                    <div key={item.id} className="bg-secondary/30 rounded-lg p-4 flex justify-between items-center hover:bg-secondary/50 transition-all duration-200 border border-slate-600/30">
+                        <div className="flex-1">
+                            <p className="font-semibold text-light text-base">{item.name}</p>
+                            {item.description && <p className="text-sm text-slate-400 mt-1">{item.description}</p>}
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                            <button onClick={() => onEdit(item)} className="bg-slate-700/50 hover:bg-accent text-slate-300 hover:text-white p-2 rounded-lg transition-all duration-200" aria-label={`Editar ${item.name}`}>
+                                <i className="fas fa-edit"></i>
+                            </button>
+                            <button onClick={() => onDelete(item)} className="bg-slate-700/50 hover:bg-red-500 text-slate-300 hover:text-white p-2 rounded-lg transition-all duration-200" aria-label={`Eliminar ${item.name}`}>
+                                <i className="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                {items.length === 0 && (
+                    <div className="text-center py-8 text-slate-400">
+                        <i className="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                        <p>No hay elementos configurados</p>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -2742,13 +3301,12 @@ const Settings = () => {
     }
 
     const tabs = [
-        { id: 'statuses', label: 'Estados Cliente' }, { id: 'industries', label: 'Rubros' },
-        { id: 'connections', label: 'Tipos Conexión' }, { id: 'contracts', label: 'Tipos Contrato' },
-        { id: 'emissionModels', label: 'Modelos Emisión' }, { id: 'freezeReasons', label: 'Motivos Congelación' },
-        { id: 'trainingTypes', label: 'Tipos Capacitación' }, { id: 'trainingServices', label: 'Servicios Cap.' },
-        { id: 'trainingTopics', label: 'Temas Capacitación' }, { id: 'trainingStatuses', label: 'Estados Cap.' },
-        { id: 'trainingPriorities', label: 'Prioridades Cap.' }, { id: 'modules', label: 'Módulos Sistema' },
-        { id: 'users', label: 'Responsables' }, { id: 'checklists', label: 'Checklists' },
+        { id: 'statuses', label: 'Estados Cliente' },
+        { id: 'trainingTypes', label: 'Tipos Capacitación' },
+        { id: 'trainingServices', label: 'Servicios Cap.' },
+        { id: 'trainingTopics', label: 'Temas Capacitación' },
+        { id: 'trainingStatuses', label: 'Estados Cap.' },
+        { id: 'trainingPriorities', label: 'Prioridades Cap.' },
     ];
     
     const renderConfigList = (listKey, title) => {
@@ -2766,44 +3324,124 @@ const Settings = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'statuses': return renderConfigList('clientStatuses', 'Estados de Cliente');
-            case 'industries': return renderConfigList('industries', 'Rubros de Clientes');
-            case 'connections': return renderConfigList('connectionTypes', 'Tipos de Conexión');
-            case 'contracts': return renderConfigList('contractTypes', 'Tipos de Contrato');
-            case 'emissionModels': return renderConfigList('emissionModels', 'Modelos de Emisión');
-            case 'freezeReasons': return renderConfigList('freezeReasons', 'Motivos de Congelación');
-            case 'trainingTypes': return renderConfigList('trainingTypes', 'Tipos de Capacitación');
-            case 'trainingServices': return renderConfigList('trainingServices', 'Servicios de Capacitación');
-            case 'trainingTopics': return renderConfigList('trainingTopics', 'Temas de Capacitación');
-            case 'trainingStatuses': return renderConfigList('trainingStatuses', 'Estados de Capacitación');
-            case 'trainingPriorities': return renderConfigList('trainingPriorities', 'Prioridades de Capacitación');
-            case 'modules': return renderConfigList('systemModules', 'Módulos del Sistema');
-            case 'users': return renderConfigList('users', 'Responsables / Usuarios');
-            case 'checklists': return <ChecklistConfig items={data.settings.checklistData} onUpdate={(val) => updateSettings({ ...data.settings, checklistData: val })} />;
+            case 'statuses': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
+                        <h3 className="text-lg font-semibold text-blue-300 mb-2">
+                            <i className="fas fa-users mr-2"></i>
+                            Gestión de Estados de Cliente
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Define los estados posibles para los clientes en el sistema
+                        </p>
+                    </div>
+                    {renderConfigList('clientStatuses', 'Estados de Cliente')}
+                </div>
+            );
+            case 'trainingTypes': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                        <h3 className="text-lg font-semibold text-green-300 mb-2">
+                            <i className="fas fa-graduation-cap mr-2"></i>
+                            Tipos de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Categoriza los diferentes tipos de capacitación disponibles
+                        </p>
+                    </div>
+                    {renderConfigList('trainingTypes', 'Tipos de Capacitación')}
+                </div>
+            );
+            case 'trainingServices': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
+                        <h3 className="text-lg font-semibold text-purple-300 mb-2">
+                            <i className="fas fa-cogs mr-2"></i>
+                            Servicios de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Define los servicios específicos de capacitación ofrecidos
+                        </p>
+                    </div>
+                    {renderConfigList('trainingServices', 'Servicios de Capacitación')}
+                </div>
+            );
+            case 'trainingTopics': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-4 border border-yellow-500/20">
+                        <h3 className="text-lg font-semibold text-yellow-300 mb-2">
+                            <i className="fas fa-book mr-2"></i>
+                            Temas de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Lista de temas específicos para las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingTopics', 'Temas de Capacitación')}
+                </div>
+            );
+            case 'trainingStatuses': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 rounded-lg p-4 border border-indigo-500/20">
+                        <h3 className="text-lg font-semibold text-indigo-300 mb-2">
+                            <i className="fas fa-tasks mr-2"></i>
+                            Estados de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Estados del progreso de las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingStatuses', 'Estados de Capacitación')}
+                </div>
+            );
+            case 'trainingPriorities': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-lg p-4 border border-red-500/20">
+                        <h3 className="text-lg font-semibold text-red-300 mb-2">
+                            <i className="fas fa-exclamation-triangle mr-2"></i>
+                            Prioridades de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Niveles de prioridad para las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingPriorities', 'Prioridades de Capacitación')}
+                </div>
+            );
             default: return null;
         }
     };
 
     return (
         <>
-            <div className="bg-secondary p-4 md:p-6 rounded-lg shadow-lg animate-fade-in">
-                <h2 className="text-2xl font-bold text-light mb-6 border-b border-primary pb-4">Configuración del Sistema</h2>
-                <div className="flex flex-col md:flex-row gap-8">
-                    <aside className="w-full md:w-1/4 lg:w-1/5">
-                        <nav className="flex flex-col space-y-2">
+            <div className="bg-gradient-to-br from-secondary to-primary p-6 md:p-8 rounded-xl shadow-2xl animate-fade-in">
+                <div className="mb-8">
+                    <h2 className="text-3xl font-bold text-light mb-2 flex items-center">
+                        <i className="fas fa-sliders-h mr-3 text-accent"></i>
+                        Configuración de Sistema
+                    </h2>
+                    <p className="text-slate-400">Gestión de estados y parametrización de capacitaciones</p>
+                </div>
+                
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <aside className="w-full lg:w-1/4">
+                        <nav className="flex flex-col space-y-2 bg-primary/30 rounded-xl p-2">
                             {tabs.map(tab => (
                                  <button 
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-2.5 text-left font-semibold text-sm rounded-lg transition-colors ${activeTab === tab.id ? 'bg-accent text-white shadow-md' : 'text-slate-300 hover:bg-primary hover:text-light'}`}
+                                    className={`px-4 py-3 text-left font-semibold text-sm rounded-lg transition-all duration-200 ${activeTab === tab.id ? 'bg-accent text-white shadow-lg transform scale-105' : 'text-slate-300 hover:bg-primary/50 hover:text-light hover:pl-6'}`}
                                 >
+                                    <i className="fas fa-chevron-right mr-2 text-xs"></i>
                                     {tab.label}
                                 </button>
                             ))}
                         </nav>
                     </aside>
-                    <main className="w-full md:w-3/4 lg:w-4/5">
-                        {renderContent()}
+                    <main className="w-full lg:w-3/4">
+                        <div className="bg-primary/20 rounded-xl p-6">
+                            {renderContent()}
+                        </div>
                     </main>
                 </div>
             </div>
@@ -2821,9 +3459,91 @@ const Settings = () => {
     );
 };
 
-Settings;
+
+
+// === public/components/ConfigOptionEditModal.js ===
+
+
+
+
+const newOptionTemplate = {
+    name: '',
+    description: '',
+};
+
+
+
+
+const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title }) => {
+    const [formData, setFormData] = useState(newOptionTemplate);
+
+    useEffect(() => {
+        if (isOpen) {
+            if (optionToEdit) {
+                setFormData({
+                    name: optionToEdit.name,
+                    description: optionToEdit.description || '',
+                });
+            } else {
+                setFormData(newOptionTemplate);
+            }
+        }
+    }, [optionToEdit, isOpen]);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = () => {
+        const optionData = {
+            id: optionToEdit?.id || `new_${Date.now()}`,
+            name: formData.name,
+            description: formData.description,
+        };
+        onSave(optionData);
+    };
+
+    return (
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title={title}
+            footer={
+                <>
+                    <button onClick={onClose} className="bg-slate-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-slate-500 transition-colors">Cancelar</button>
+                    <button onClick={handleSubmit} className="bg-accent text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">Guardar</button>
+                </>
+            }
+        >
+           <div className="space-y-4">
+                <FormInput 
+                    label="Nombre"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                />
+                <FormTextarea
+                    label="Descripción (Opcional)"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                />
+           </div>
+        </Modal>
+    );
+};
+
+
 
 // === public/components/GeneralAnalysisModal.js ===
+
+
+
+import { generateOverallClientAnalysis } from '../services/geminiService.js';
+import { useAppContext } from '../contexts/AppContext.js';
+
 const GeneralAnalysisModal = ({ isOpen, onClose }) => {
     const { data } = useAppContext();
     const [analysis, setAnalysis] = useState('');
@@ -2857,9 +3577,26 @@ const GeneralAnalysisModal = ({ isOpen, onClose }) => {
     );
 };
 
-GeneralAnalysisModal;
 
-// === App Initialization ===
+
+// === public/App.js ===
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const AppContent = () => {
     const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [activeView, setActiveView] = useState('dashboard');
@@ -2870,39 +3607,136 @@ const AppContent = () => {
 
     const renderActiveView = () => {
         switch (activeView) {
-            case 'dashboard': return React.createElement(Dashboard);
-            case 'clients': return React.createElement(Clients);
-            case 'trainings': return React.createElement(Trainings);
-            case 'calendar': return React.createElement(Calendar);
-            case 'checklists': return React.createElement(Checklists);
-            case 'ecommerce': return React.createElement(Ecommerce);
-            case 'app_pedido': return React.createElement(AppPedido);
-            case 'kos': return React.createElement(Kos);
-            case 'settings': return React.createElement(Settings);
-            default: return React.createElement(Dashboard);
+            case 'dashboard':
+                return <Dashboard />;
+            case 'clients':
+                return <Clients />;
+            case 'trainings':
+                return <Trainings />;
+            case 'calendar':
+                return <Calendar />;
+            case 'checklists':
+                 return <Checklists />;
+            case 'ecommerce':
+                return <Ecommerce />;
+            case 'app_pedido':
+                return <AppPedido />;
+            case 'kos':
+                return <Kos />;
+            case 'settings':
+                return <Settings />;
+            default:
+                return <Dashboard />;
         }
     };
 
     const currentViewTitle = navItems.find(item => item.id === activeView)?.label || 'Dashboard';
 
-    return React.createElement('div', { className: 'flex h-screen bg-primary text-light overflow-hidden' },
-        React.createElement(Sidebar, { 
-            isCollapsed: isSidebarCollapsed, 
-            activeView: activeView, 
-            setActiveView: setActiveView 
-        }),
-        React.createElement('div', { 
-            className: `flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[60px]' : 'ml-64'}`
-        },
-            React.createElement(Header, { 
-                toggleSidebar: toggleSidebar, 
-                isSidebarCollapsed: isSidebarCollapsed,
-                title: currentViewTitle
-            }),
-            React.createElement('main', { 
-                className: 'flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto bg-dark/50'
-            }, renderActiveView())
+    return (
+        <div className="flex h-screen bg-primary text-light overflow-hidden">
+            <Sidebar 
+                isCollapsed={isSidebarCollapsed} 
+                activeView={activeView} 
+                setActiveView={setActiveView} 
+            />
+            <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[60px]' : 'ml-64'}`}>
+                <Header 
+                    toggleSidebar={toggleSidebar} 
+                    isSidebarCollapsed={isSidebarCollapsed}
+                    title={currentViewTitle}
+                />
+                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto bg-dark/50">
+                    {renderActiveView()}
+                </main>
+            </div>
+        </div>
+    );
+};
+
+
+const App = () => {
+    const { data, loading } = useAppData();
+
+    if (loading || !data) {
+        return (
+            <div className="flex h-screen justify-center items-center bg-primary">
+                <Spinner />
+            </div>
         )
+    }
+
+    return (
+        <AppProvider initialData={data}>
+            <AppContent />
+        </AppProvider>
+    );
+};
+
+
+
+
+// === public/index.js ===
+
+// Importar React desde el CDN
+const { useState, useCallback, useContext, createContext, useEffect } = React;
+const { createRoot } = ReactDOM;
+
+// Importar componentes y utilidades (se cargarán como scripts)
+// Los componentes se definirán globalmente
+
+const AppContent = () => {
+    const [isSidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [activeView, setActiveView] = useState('dashboard');
+
+    const toggleSidebar = useCallback(() => {
+        setSidebarCollapsed(prevState => !prevState);
+    }, []);
+
+    const renderActiveView = () => {
+        switch (activeView) {
+            case 'dashboard':
+                return React.createElement(Dashboard);
+            case 'clients':
+                return React.createElement(Clients);
+            case 'trainings':
+                return React.createElement(Trainings);
+            case 'calendar':
+                return React.createElement(Calendar);
+            case 'checklists':
+                return React.createElement(Checklists);
+            case 'ecommerce':
+                return React.createElement(Ecommerce);
+            case 'app_pedido':
+                return React.createElement(AppPedido);
+            case 'kos':
+                return React.createElement(Kos);
+            case 'settings':
+                return React.createElement(Settings);
+            default:
+                return React.createElement(Dashboard);
+        }
+    };
+
+    const currentViewTitle = navItems.find(item => item.id === activeView)?.label || 'Dashboard';
+
+    return (
+        <div className="flex h-screen bg-primary text-light overflow-hidden">
+            <Sidebar 
+                isCollapsed={isSidebarCollapsed} 
+                activeView={activeView} 
+                setActiveView={setActiveView} 
+            />
+            <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarCollapsed ? 'ml-[60px]' : 'ml-64'}`}>
+                <Header 
+                    toggleSidebar={toggleSidebar} 
+                    isSidebarCollapsed={isSidebarCollapsed}
+                    title={currentViewTitle}
+                />
+                <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-y-auto bg-dark/50">
+                    {renderActiveView()}
+                </main>
+            </div>
+        </div>
     );
 };
 
@@ -2910,25 +3744,30 @@ const App = () => {
     const { data, loading } = useAppData();
 
     if (loading || !data) {
-        return React.createElement('div', { className: 'flex h-screen justify-center items-center bg-primary' },
-            React.createElement(Spinner)
-        );
+        return (
+            <div className="flex h-screen justify-center items-center bg-primary">
+                <Spinner />
+            </div>
+        )
     }
 
-    return React.createElement(AppProvider, { initialData: data },
-        React.createElement(AppContent)
+    return (
+        <AppProvider initialData={data}>
+            <AppContent />
+        </AppProvider>
     );
 };
 
-// Initialize the application
+// Inicializar la aplicación
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-    throw new Error("Could not find root element to mount to");
+  throw new Error("Could not find root element to mount to");
 }
 
 const root = createRoot(rootElement);
 root.render(
-    React.createElement(React.StrictMode, null,
-        React.createElement(App)
-    )
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
 );
+
