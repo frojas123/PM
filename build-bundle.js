@@ -44,10 +44,14 @@ function processFile(filePath) {
     content = content.replace(/import.*Skeleton.*from.*['"'].*shared.*Skeleton.*['"];?\n?/g, '');
     
     // getStatusColor y funciones de StatusUtils
-    content = content.replace(/import.*\{[^}]*getStatusColor[^}]*\}.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
-    content = content.replace(/import.*getStatusColor.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
-    content = content.replace(/import.*\{[^}]*getStatusTextColor[^}]*\}.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
-    content = content.replace(/import.*getStatusTextColor.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*\{[^}]*getStatusColor[^}]*\}.*from.*['"].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*getStatusColor.*from.*['"].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*\{[^}]*getStatusTextColor[^}]*\}.*from.*['"].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*getStatusTextColor.*from.*['"].*StatusUtils.*['"];?\n?/g, '');
+    
+    // generateOverallClientAnalysis desde geminiService
+    content = content.replace(/import.*\{[^}]*generateOverallClientAnalysis[^}]*\}.*from.*['"].*geminiService.*['"];?\n?/g, '');
+    content = content.replace(/import.*generateOverallClientAnalysis.*from.*['"].*geminiService.*['"];?\n?/g, '');
     
     // Convertir imports relativos generales
     content = content.replace(/import.*from\s+['"]\.\/shared\/.*['"];?\n?/g, '');

@@ -3540,7 +3540,7 @@ const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title })
 
 
 
-import { generateOverallClientAnalysis } from '../services/geminiService.js';
+
 
 
 const GeneralAnalysisModal = ({ isOpen, onClose }) => {
