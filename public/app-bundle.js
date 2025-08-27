@@ -1,4 +1,4 @@
-// PM Gestor Pro - Bundle - Updated: 2025-08-27 04:53
+// PM Gestor Pro - Bundle - Updated: 2025-08-27 05:00
 // Generated automatically - Do not edit manually
 
 // React hooks destructuring
@@ -1240,7 +1240,7 @@ const Dashboard = () => {
 
 
 
-import { getStatusColor } from '../utils/StatusUtils.js';
+
 
 const Clients = () => {
     const { data, saveClient } = useAppContext();
@@ -2309,7 +2309,7 @@ const TrainingSummary = ({ clientId = null, compact = false }) => {
 
 
 
-import { getStatusColor, getStatusTextColor } from '../utils/StatusUtils.js';
+
 
 const TrainingTooltip = ({ training, settings }) => {
     const statusConfig = settings?.trainingStatuses?.find(s => s.name === training.status);

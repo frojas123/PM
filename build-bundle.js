@@ -43,8 +43,15 @@ function processFile(filePath) {
     content = content.replace(/import.*\{?[^}]*Skeleton[^}]*\}?.*from.*['"'].*shared.*Skeleton.*['"];?\n?/g, '');
     content = content.replace(/import.*Skeleton.*from.*['"'].*shared.*Skeleton.*['"];?\n?/g, '');
     
+    // getStatusColor y funciones de StatusUtils
+    content = content.replace(/import.*\{[^}]*getStatusColor[^}]*\}.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*getStatusColor.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*\{[^}]*getStatusTextColor[^}]*\}.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
+    content = content.replace(/import.*getStatusTextColor.*from.*['"'].*StatusUtils.*['"];?\n?/g, '');
+    
     // Convertir imports relativos generales
     content = content.replace(/import.*from\s+['"]\.\/shared\/.*['"];?\n?/g, '');
+    content = content.replace(/import.*from\s+['"]\.\/utils\/.*['"];?\n?/g, '');
     content = content.replace(/import.*from\s+['"]\.\/.*['"];?\n?/g, '');
     
     // Remover solo export default, pero mantener definiciones de funciones/constantes
