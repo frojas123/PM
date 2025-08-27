@@ -16,6 +16,8 @@ const mockTrainings = [
     { id: 'T004', clientId: 'C001', clientFantasyName: 'TechSolve', type: 'PM', service: 'General', topic: 'Introducción al sistema y parámetros de producto', responsible: 'Juan Díaz', dateTime: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), duration: 120, notes: 'Se canceló por problemas de agenda del cliente.', status: 'CANCELADA' },
     { id: 'T005', clientId: 'C005', clientFantasyName: 'Clínica Sonrisa', type: 'General', service: 'KOS', topic: 'Gestión de Fichas de Pacientes', responsible: 'María Rodriguez', dateTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), duration: 90, notes: 'Capacitación para el personal médico.', status: 'AGENDADA' },
     { id: 'T006', clientId: 'C004', clientFantasyName: 'FastFashion', type: 'General', service: 'Ecommerce', topic: 'Carga Masiva de Productos', responsible: 'Juan Díaz', dateTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), duration: 75, notes: 'Capacitación para el equipo de e-commerce.', status: 'AGENDADA' },
+    { id: 'T007', clientId: 'C002', clientFantasyName: 'Gourmet Market', type: 'Técnico', service: 'General', topic: 'Uso Básico del Sistema', responsible: 'Carlos Soto', dateTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(), duration: 90, notes: 'Capacitación técnica inicial.', status: 'AGENDADA' },
+    { id: 'T008', clientId: 'C003', clientFantasyName: 'ConSur', type: 'Seguimiento', service: 'General', topic: 'Generación de Reportes', responsible: 'María Rodriguez', dateTime: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), duration: 60, notes: 'Seguimiento post-implementación.', status: 'AGENDADA' },
 ];
 
 const mockDashboardStats = {
@@ -123,31 +125,67 @@ const mockSettings = {
     freezeReasons: [
         { id: 'fr1', name: 'Reestructuración interna' }, { id: 'fr2', name: 'Problemas de presupuesto' }, { id: 'fr3', name: 'Falta de personal' }, { id: 'fr4', name: 'Cambio de prioridades' }
     ],
-    trainingTopicsPM: [
-        { id: 'tpm1', name: 'Introducción al sistema y parámetros de producto' }, { id: 'tpm2', name: 'Capacitación Parametrización usuarios' },
-        { id: 'tpm3', name: 'Capacitación ventas' }, { id: 'tpm4', name: 'Capacitación Inventario' }, { id: 'tpm5', name: 'Capacitación Caja' },
-        { id: 'tpm6', name: 'Capacitación Descarga folio' }, { id: 'tpm7', name: 'Capacitación Envío DTE' }, { id: 'tpm8', name: 'Capacitación Envío Boleta' },
-        { id: 'tpm9', name: 'Cierre de Caja' }, { id: 'tpm10', name: 'Capacitación Comparativa DTE con Sistema Denarium' }
+    trainingTypes: [
+        { id: 'tt1', name: 'PM', description: 'Capacitaciones de Project Manager', color: 'bg-blue-500', defaultDuration: 120 },
+        { id: 'tt2', name: 'General', description: 'Capacitaciones generales del sistema', color: 'bg-green-500', defaultDuration: 90 },
+        { id: 'tt3', name: 'Técnico', description: 'Capacitaciones técnicas especializadas', color: 'bg-purple-500', defaultDuration: 180 },
+        { id: 'tt4', name: 'Seguimiento', description: 'Sesiones de seguimiento post-implementación', color: 'bg-orange-500', defaultDuration: 60 }
     ],
-    trainingTopicsGeneral: [
-        { id: 'tge1', name: 'Uso Básico del Sistema' }, { id: 'tge2', name: 'Gestión de Ventas' }, { id: 'tge3', name: 'Inventario y Stock' },
-        { id: 'tge4', name: 'Facturación Electrónica' }, { id: 'tge5', name: 'Gestión de Clientes' }, { id: 'tge6', name: 'Gestión de Proveedores' },
-        { id: 'tge7', name: 'Generación de Reportes' }
+    trainingServices: [
+        { id: 'ts1', name: 'General', description: 'Servicios generales del sistema', topics: ['tge1', 'tge2', 'tge3', 'tge4', 'tge5', 'tge6', 'tge7'] },
+        { id: 'ts2', name: 'Ecommerce', description: 'Servicios de comercio electrónico', topics: ['eco1', 'eco2', 'eco3'] },
+        { id: 'ts3', name: 'App Pedido', description: 'Aplicación de pedidos móviles', topics: ['app1', 'app2', 'app3'] },
+        { id: 'ts4', name: 'KOS', description: 'Sistema de gestión clínica', topics: ['kos1', 'kos2', 'kos3'] },
+        { id: 'ts5', name: 'PM', description: 'Capacitaciones de Project Manager', topics: ['tpm1', 'tpm2', 'tpm3', 'tpm4', 'tpm5', 'tpm6', 'tpm7', 'tpm8', 'tpm9', 'tpm10'] }
     ],
-     trainingTopicsEcommerce: [
-        { id: 'eco1', name: 'Configuración de Pasarelas de Pago' },
-        { id: 'eco2', name: 'Carga Masiva de Productos' },
-        { id: 'eco3', name: 'Gestión de Órdenes y Envíos' },
+    trainingTopics: [
+        // PM Topics
+        { id: 'tpm1', name: 'Introducción al sistema y parámetros de producto', service: 'PM', duration: 120, priority: 'Alta' },
+        { id: 'tpm2', name: 'Capacitación Parametrización usuarios', service: 'PM', duration: 60, priority: 'Media' },
+        { id: 'tpm3', name: 'Capacitación ventas', service: 'PM', duration: 180, priority: 'Alta' },
+        { id: 'tpm4', name: 'Capacitación Inventario', service: 'PM', duration: 120, priority: 'Alta' },
+        { id: 'tpm5', name: 'Capacitación Caja', service: 'PM', duration: 120, priority: 'Alta' },
+        { id: 'tpm6', name: 'Capacitación Descarga folio', service: 'PM', duration: 60, priority: 'Media' },
+        { id: 'tpm7', name: 'Capacitación Envío DTE', service: 'PM', duration: 120, priority: 'Alta' },
+        { id: 'tpm8', name: 'Capacitación Envío Boleta', service: 'PM', duration: 120, priority: 'Alta' },
+        { id: 'tpm9', name: 'Cierre de Caja', service: 'PM', duration: 60, priority: 'Media' },
+        { id: 'tpm10', name: 'Capacitación Comparativa DTE con Sistema Denarium', service: 'PM', duration: 120, priority: 'Media' },
+        
+        // General Topics
+        { id: 'tge1', name: 'Uso Básico del Sistema', service: 'General', duration: 90, priority: 'Alta' },
+        { id: 'tge2', name: 'Gestión de Ventas', service: 'General', duration: 120, priority: 'Alta' },
+        { id: 'tge3', name: 'Inventario y Stock', service: 'General', duration: 90, priority: 'Media' },
+        { id: 'tge4', name: 'Facturación Electrónica', service: 'General', duration: 120, priority: 'Alta' },
+        { id: 'tge5', name: 'Gestión de Clientes', service: 'General', duration: 60, priority: 'Media' },
+        { id: 'tge6', name: 'Gestión de Proveedores', service: 'General', duration: 60, priority: 'Baja' },
+        { id: 'tge7', name: 'Generación de Reportes', service: 'General', duration: 90, priority: 'Media' },
+        
+        // Ecommerce Topics
+        { id: 'eco1', name: 'Configuración de Pasarelas de Pago', service: 'Ecommerce', duration: 90, priority: 'Alta' },
+        { id: 'eco2', name: 'Carga Masiva de Productos', service: 'Ecommerce', duration: 75, priority: 'Media' },
+        { id: 'eco3', name: 'Gestión de Órdenes y Envíos', service: 'Ecommerce', duration: 60, priority: 'Media' },
+        
+        // App Pedido Topics
+        { id: 'app1', name: 'Configuración de la App', service: 'App Pedido', duration: 60, priority: 'Alta' },
+        { id: 'app2', name: 'Gestión de Menú Digital', service: 'App Pedido', duration: 90, priority: 'Media' },
+        { id: 'app3', name: 'Reportes de Ventas Móviles', service: 'App Pedido', duration: 45, priority: 'Baja' },
+        
+        // KOS Topics
+        { id: 'kos1', name: 'Gestión de Fichas de Pacientes', service: 'KOS', duration: 90, priority: 'Alta' },
+        { id: 'kos2', name: 'Facturación de Prestaciones', service: 'KOS', duration: 120, priority: 'Alta' },
+        { id: 'kos3', name: 'Gestión de Agendas Médicas', service: 'KOS', duration: 75, priority: 'Media' }
     ],
-    trainingTopicsAppPedido: [
-        { id: 'app1', name: 'Configuración de la App' },
-        { id: 'app2', name: 'Gestión de Menú Digital' },
-        { id: 'app3', name: 'Reportes de Ventas Móviles' },
+    trainingStatuses: [
+        { id: 'ts1', name: 'AGENDADA', description: 'Capacitación programada', color: 'bg-yellow-500', textColor: 'text-yellow-100' },
+        { id: 'ts2', name: 'EN PROCESO', description: 'Capacitación en curso', color: 'bg-blue-500', textColor: 'text-blue-100' },
+        { id: 'ts3', name: 'REAGENDADA', description: 'Capacitación reprogramada', color: 'bg-orange-500', textColor: 'text-orange-100' },
+        { id: 'ts4', name: 'CANCELADA', description: 'Capacitación cancelada', color: 'bg-red-500', textColor: 'text-red-100' },
+        { id: 'ts5', name: 'COMPLETADA', description: 'Capacitación finalizada', color: 'bg-green-500', textColor: 'text-green-100' }
     ],
-    trainingTopicsKOS: [
-        { id: 'kos1', name: 'Gestión de Fichas de Pacientes' },
-        { id: 'kos2', name: 'Facturación de Prestaciones' },
-        { id: 'kos3', name: 'Gestión de Agendas Médicas' },
+    trainingPriorities: [
+        { id: 'tp1', name: 'Alta', description: 'Capacitación crítica', color: 'text-red-500' },
+        { id: 'tp2', name: 'Media', description: 'Capacitación importante', color: 'text-yellow-500' },
+        { id: 'tp3', name: 'Baja', description: 'Capacitación opcional', color: 'text-green-500' }
     ],
     systemModules: [
         { id: 'mod1', name: 'Ventas y Caja' },

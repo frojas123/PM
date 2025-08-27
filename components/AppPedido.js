@@ -43,17 +43,25 @@ const AppPedido = () => {
                                             <i className="fas fa-edit"></i>
                                         </button>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 text-sm">
-                                        <div>
-                                            <p className="text-slate-400 text-xs">Licencias Contratadas</p>
-                                            <p className="font-semibold text-2xl">{client.appPedidoDetails?.licenses}</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                                        <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
+                                            <p className="text-blue-400 text-sm font-medium mb-1">Licencias Contratadas</p>
+                                            <p className="font-bold text-3xl text-blue-300">{client.appPedidoDetails?.licenses || 0}</p>
                                         </div>
-                                        <div>
-                                            <p className="text-slate-400 text-xs">IMEIs con Licencia</p>
-                                            <div className="text-xs bg-secondary p-2 rounded-md max-h-20 overflow-y-auto">
+                                        <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                                            <p className="text-green-400 text-sm font-medium mb-2">IMEIs Registrados</p>
+                                            <div className="space-y-1">
                                                 {client.appPedidoDetails?.imeis && client.appPedidoDetails.imeis.length > 0 ? (
-                                                    client.appPedidoDetails.imeis.map(imei => <div key={imei}>{imei}</div>)
-                                                ) : <p className="text-slate-500">Sin IMEIs</p>}
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {client.appPedidoDetails.imeis.map((imei, index) => (
+                                                            <span key={index} className="bg-green-500/20 text-green-300 px-3 py-1 rounded-full text-xs font-mono">
+                                                                {imei}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-slate-500 text-sm italic">Sin IMEIs registrados</p>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

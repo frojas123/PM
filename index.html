@@ -29,43 +29,157 @@
       }
     </script>
     
-    <!-- Force dropdown styles -->
+    <!-- FORCE DROPDOWN STYLES - MAXIMUM SPECIFICITY -->
     <style>
-      /* Ultra high specificity styles for dropdowns */
-      html body div select,
+      /* ULTRA MAXIMUM SPECIFICITY - FORCE ALL DROPDOWNS */
+      html body div.flex div select,
+      html body div.space-y-4 select,
+      html body div.grid select,
+      html body main select,
       html body form select,
-      html body select {
+      html body div select,
+      html body select,
+      select {
         background-color: #FFFFFF !important;
         color: #1F2937 !important;
         border: 2px solid #6B7280 !important;
         -webkit-appearance: none !important;
         -moz-appearance: none !important;
         appearance: none !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
       }
       
-      html body div select option,
+      /* FORCE ALL OPTIONS */
+      html body div.flex div select option,
+      html body div.space-y-4 select option,
+      html body div.grid select option,
+      html body main select option,
       html body form select option,
-      html body select option {
+      html body div select option,
+      html body select option,
+      select option,
+      option {
         background-color: #FFFFFF !important;
         color: #1F2937 !important;
         padding: 8px 12px !important;
+        border: none !important;
       }
       
-      html body div input,
+      /* FORCE ALL INPUTS */
+      html body div.flex div input,
+      html body div.space-y-4 input,
+      html body div.grid input,
+      html body main input,
       html body form input,
+      html body div input,
       html body input,
-      html body textarea {
+      html body textarea,
+      input,
+      textarea {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 2px solid #6B7280 !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+        border-radius: 6px !important;
+      }
+      
+      /* FORCE PLACEHOLDERS */
+      html body input::placeholder,
+      html body textarea::placeholder,
+      input::placeholder,
+      textarea::placeholder {
+        color: #6B7280 !important;
+        opacity: 1 !important;
+      }
+      
+      /* FORCE FOCUS STATES */
+      html body select:focus,
+      html body input:focus,
+      html body textarea:focus,
+      select:focus,
+      input:focus,
+      textarea:focus {
+        background-color: #F9FAFB !important;
+        border-color: #10B981 !important;
+        outline: none !important;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+      }
+      
+      /* ADDITIONAL NUCLEAR OPTION - OVERRIDE EVERYTHING */
+      * select {
         background-color: #FFFFFF !important;
         color: #1F2937 !important;
         border: 2px solid #6B7280 !important;
       }
       
-      html body input::placeholder,
-      html body textarea::placeholder {
-        color: #6B7280 !important;
-        opacity: 1 !important;
+      * select option {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+      }
+      
+      * input:not([type="checkbox"]):not([type="radio"]) {
+        background-color: #FFFFFF !important;
+        color: #1F2937 !important;
+        border: 2px solid #6B7280 !important;
       }
     </style>
+    
+    <!-- JAVASCRIPT FORCE STYLES - IMMEDIATE EXECUTION -->
+    <script>
+      // IMMEDIATE STYLE FORCING - RUNS BEFORE ANYTHING ELSE
+      function forceAllStyles() {
+        // Force all selects
+        document.querySelectorAll('select').forEach(select => {
+          select.style.setProperty('background-color', '#FFFFFF', 'important');
+          select.style.setProperty('color', '#1F2937', 'important');
+          select.style.setProperty('border', '2px solid #6B7280', 'important');
+          select.style.setProperty('padding', '8px 12px', 'important');
+          select.style.setProperty('border-radius', '6px', 'important');
+          select.style.setProperty('font-size', '14px', 'important');
+          
+          // Force all options
+          select.querySelectorAll('option').forEach(option => {
+            option.style.setProperty('background-color', '#FFFFFF', 'important');
+            option.style.setProperty('color', '#1F2937', 'important');
+          });
+        });
+        
+        // Force all inputs
+        document.querySelectorAll('input:not([type="checkbox"]):not([type="radio"]), textarea').forEach(input => {
+          input.style.setProperty('background-color', '#FFFFFF', 'important');
+          input.style.setProperty('color', '#1F2937', 'important');
+          input.style.setProperty('border', '2px solid #6B7280', 'important');
+          input.style.setProperty('padding', '8px 12px', 'important');
+          input.style.setProperty('border-radius', '6px', 'important');
+          input.style.setProperty('font-size', '14px', 'important');
+        });
+      }
+      
+      // Execute immediately
+      forceAllStyles();
+      
+      // Execute when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', forceAllStyles);
+      }
+      
+      // Execute every second to catch dynamic elements
+      setInterval(forceAllStyles, 1000);
+      
+      // Execute on any DOM mutation
+      if (typeof MutationObserver !== 'undefined') {
+        const observer = new MutationObserver(forceAllStyles);
+        observer.observe(document.body || document.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['style', 'class']
+        });
+      }
+    </script>
     <!-- React CDN -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
