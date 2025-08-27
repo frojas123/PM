@@ -47,3 +47,6 @@ Este proyecto está configurado para deployment automático en GitHub Pages.
 - `npm run build` - Build para producción
 - `npm run preview` - Preview del build
 - `npm run deploy` - Deploy manual a GitHub Pages
+
+---
+*Última actualización: Enero 2025 - Bundles optimizados sin duplicaciones*
