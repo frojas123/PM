@@ -1,12 +1,61 @@
 
 import React from 'react';
-const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } = window.Recharts;
 import { useAppContext } from '../contexts/AppContext.js';
 import Card from './shared/Card.js';
 
 const COLORS = ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'];
 
 const Dashboard = () => {
+    const [rechartsLoaded, setRechartsLoaded] = React.useState(false);
+    
+    // Verificar si Recharts está disponible
+    const isRechartsLoaded = window.Recharts && 
+        window.Recharts.BarChart && 
+        window.Recharts.ResponsiveContainer;
+    
+    // Effect para detectar cuando Recharts se carga
+    React.useEffect(() => {
+        // Verificar si ya está cargado
+        if (window.RECHARTS_LOADED || isRechartsLoaded) {
+            setRechartsLoaded(true);
+        } else {
+            // Escuchar el evento personalizado de carga
+            const handleRechartsLoad = () => {
+                if (window.Recharts && window.Recharts.BarChart && window.Recharts.ResponsiveContainer) {
+                    setRechartsLoaded(true);
+                }
+            };
+            
+            window.addEventListener('rechartsLoaded', handleRechartsLoad);
+            
+            // Fallback: verificar cada 200ms por 10 segundos máximo
+            let attempts = 0;
+            const maxAttempts = 50; // 10 segundos
+            const checkInterval = setInterval(() => {
+                attempts++;
+                if (window.Recharts && window.Recharts.BarChart && window.Recharts.ResponsiveContainer) {
+                    setRechartsLoaded(true);
+                    clearInterval(checkInterval);
+                } else if (attempts >= maxAttempts) {
+                    console.warn('Recharts no se pudo cargar después de 10 segundos');
+                    clearInterval(checkInterval);
+                }
+            }, 200);
+            
+            return () => {
+                window.removeEventListener('rechartsLoaded', handleRechartsLoad);
+                clearInterval(checkInterval);
+            };
+        }
+    }, [isRechartsLoaded]);
+    
+    // Desestructurar componentes solo si están disponibles
+    const {
+        BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+        Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+    } = (rechartsLoaded && isRechartsLoaded) ? window.Recharts : {};
+    
+    const chartsAvailable = rechartsLoaded && isRechartsLoaded;
     const { data } = useAppContext();
     const { dashboardStats } = data;
 
@@ -71,39 +120,57 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Estado de Clientes</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={dashboardStats.clientsByStatus}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={120}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                                {dashboardStats.clientsByStatus.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} clientes`, '']} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={dashboardStats.clientsByStatus}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={120}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {dashboardStats.clientsByStatus.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} clientes`, '']} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-pie text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Clientes por Rubro</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={dashboardStats.clientsByIndustry} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
-                            <XAxis dataKey="name" stroke="#ecf0f1" />
-                            <YAxis stroke="#ecf0f1" />
-                            <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
-                            <Legend />
-                            <Bar dataKey="value" name="Nº Clientes" fill="#3498db" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={dashboardStats.clientsByIndustry} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
+                                <XAxis dataKey="name" stroke="#ecf0f1" />
+                                <YAxis stroke="#ecf0f1" />
+                                <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
+                                <Legend />
+                                <Bar dataKey="value" name="Nº Clientes" fill="#3498db" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-bar text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -111,39 +178,57 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Capacitaciones por Estado</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={trainingsByStatus}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={120}
-                                fill="#8884d8"
-                                dataKey="value"
-                                nameKey="name"
-                                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            >
-                                {trainingsByStatus.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip formatter={(value) => [`${value} capacitaciones`, '']} />
-                        </PieChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                                <Pie
+                                    data={trainingsByStatus}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={120}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    nameKey="name"
+                                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                                >
+                                    {trainingsByStatus.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value) => [`${value} capacitaciones`, '']} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-pie text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
                 <div className="bg-secondary p-6 rounded-lg shadow-lg">
                     <h3 className="text-xl font-semibold mb-4 text-light">Capacitaciones por Servicio</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={trainingsByService} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
-                            <XAxis dataKey="name" stroke="#ecf0f1" />
-                            <YAxis stroke="#ecf0f1" />
-                            <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
-                            <Legend />
-                            <Bar dataKey="value" name="Nº Capacitaciones" fill="#9b59b6" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    {chartsAvailable ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={trainingsByService} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#34495e" />
+                                <XAxis dataKey="name" stroke="#ecf0f1" />
+                                <YAxis stroke="#ecf0f1" />
+                                <Tooltip contentStyle={{ backgroundColor: '#2c3e50', border: 'none' }} cursor={{fill: '#34495e'}} />
+                                <Legend />
+                                <Bar dataKey="value" name="Nº Capacitaciones" fill="#9b59b6" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    ) : (
+                        <div className="h-[300px] flex items-center justify-center text-light opacity-50">
+                            <div className="text-center">
+                                <i className="fas fa-chart-bar text-4xl mb-4"></i>
+                                <p>Cargando gráficos...</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

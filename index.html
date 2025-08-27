@@ -189,6 +189,27 @@
     
     <!-- Recharts for charts (stable version) -->
     <script src="https://unpkg.com/recharts@2.5.0/umd/Recharts.js"></script>
+    
+    <!-- Recharts load verification -->
+    <script>
+      // Verificar que Recharts se cargó correctamente
+      function checkRechartsLoaded() {
+        if (window.Recharts && window.Recharts.ResponsiveContainer) {
+          console.log('✅ Recharts cargado correctamente');
+          window.RECHARTS_LOADED = true;
+          // Disparar evento personalizado para notificar a React
+          window.dispatchEvent(new CustomEvent('rechartsLoaded'));
+        } else {
+          console.log('⚠️ Recharts no está disponible, reintentando...');
+          setTimeout(checkRechartsLoaded, 100);
+        }
+      }
+      
+      // Verificar inmediatamente y después de que se cargue la página
+      window.RECHARTS_LOADED = false;
+      checkRechartsLoaded();
+      document.addEventListener('DOMContentLoaded', checkRechartsLoaded);
+    </script>
 </head>
   <body>
     <div id="root"></div>
