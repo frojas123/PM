@@ -15,6 +15,10 @@ function processFile(filePath) {
     content = content.replace(/import React.*from.*['"']react['"'];?\n?/g, '');
     content = content.replace(/import \{[^}]*\}.*from.*['"']react['"'];?\n?/g, '');
     
+    // Remover declaraciones duplicadas de hooks de React
+    content = content.replace(/const \{ *useState[^}]*\} *= *React;?\n?/g, '');
+    content = content.replace(/const \{ *createRoot[^}]*\} *= *ReactDOM;?\n?/g, '');
+    
     // Remover imports específicos que ya están disponibles globalmente
     // navItems desde constants.js
     content = content.replace(/import.*\{[^}]*navItems[^}]*\}.*from.*['"'].*constants.*['"];?\n?/g, '');

@@ -3663,8 +3663,8 @@ const App = () => {
 // === public/index.js ===
 
 // Importar React desde el CDN
-const { useState, useCallback, useContext, createContext, useEffect } = React;
-const { createRoot } = ReactDOM;
+
+
 
 // Importar componentes y utilidades (se cargarán como scripts)
 // Los componentes se definirán globalmente
