@@ -4,28 +4,39 @@ import ConfigOptionEditModal from './ConfigOptionEditModal.js';
 
 const ConfigList = ({ title, items, onEdit, onAdd, onDelete }) => {
     return (
-        <div>
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-semibold text-light">{title}</h3>
-                <button onClick={onAdd} className="bg-accent text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-500 transition-colors">
+        <div className="bg-primary/50 rounded-xl p-6 border border-slate-700/50">
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold text-light flex items-center">
+                    <i className="fas fa-cog mr-2 text-accent"></i>
+                    {title}
+                </h3>
+                <button onClick={onAdd} className="bg-accent hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105">
                     <i className="fas fa-plus mr-2"></i> Añadir Nuevo
                 </button>
             </div>
-            <div className="bg-primary rounded-lg shadow-inner">
-                <ul className="divide-y divide-slate-700">
-                    {items.map(item => (
-                        <li key={item.id} className="p-4 flex justify-between items-center hover:bg-slate-700/50 transition-colors">
-                            <div>
-                                <p className="font-medium text-light">{item.name}</p>
-                                {item.description && <p className="text-xs text-slate-400 mt-1">{item.description}</p>}
-                            </div>
-                            <div className="flex gap-2">
-                                <button onClick={() => onEdit(item)} className="text-slate-400 hover:text-accent transition-colors p-1" aria-label={`Editar ${item.name}`}><i className="fas fa-edit"></i></button>
-                                <button onClick={() => onDelete(item)} className="text-slate-400 hover:text-red-500 transition-colors p-1" aria-label={`Eliminar ${item.name}`}><i className="fas fa-trash"></i></button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+            <div className="space-y-3">
+                {items.map(item => (
+                    <div key={item.id} className="bg-secondary/30 rounded-lg p-4 flex justify-between items-center hover:bg-secondary/50 transition-all duration-200 border border-slate-600/30">
+                        <div className="flex-1">
+                            <p className="font-semibold text-light text-base">{item.name}</p>
+                            {item.description && <p className="text-sm text-slate-400 mt-1">{item.description}</p>}
+                        </div>
+                        <div className="flex gap-2 ml-4">
+                            <button onClick={() => onEdit(item)} className="bg-slate-700/50 hover:bg-accent text-slate-300 hover:text-white p-2 rounded-lg transition-all duration-200" aria-label={`Editar ${item.name}`}>
+                                <i className="fas fa-edit"></i>
+                            </button>
+                            <button onClick={() => onDelete(item)} className="bg-slate-700/50 hover:bg-red-500 text-slate-300 hover:text-white p-2 rounded-lg transition-all duration-200" aria-label={`Eliminar ${item.name}`}>
+                                <i className="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                ))}
+                {items.length === 0 && (
+                    <div className="text-center py-8 text-slate-400">
+                        <i className="fas fa-inbox text-4xl mb-3 opacity-50"></i>
+                        <p>No hay elementos configurados</p>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -122,13 +133,12 @@ const Settings = () => {
     }
 
     const tabs = [
-        { id: 'statuses', label: 'Estados Cliente' }, { id: 'industries', label: 'Rubros' },
-        { id: 'connections', label: 'Tipos Conexión' }, { id: 'contracts', label: 'Tipos Contrato' },
-        { id: 'emissionModels', label: 'Modelos Emisión' }, { id: 'freezeReasons', label: 'Motivos Congelación' },
-        { id: 'trainingTypes', label: 'Tipos Capacitación' }, { id: 'trainingServices', label: 'Servicios Cap.' },
-        { id: 'trainingTopics', label: 'Temas Capacitación' }, { id: 'trainingStatuses', label: 'Estados Cap.' },
-        { id: 'trainingPriorities', label: 'Prioridades Cap.' }, { id: 'modules', label: 'Módulos Sistema' },
-        { id: 'users', label: 'Responsables' }, { id: 'checklists', label: 'Checklists' },
+        { id: 'statuses', label: 'Estados Cliente' },
+        { id: 'trainingTypes', label: 'Tipos Capacitación' },
+        { id: 'trainingServices', label: 'Servicios Cap.' },
+        { id: 'trainingTopics', label: 'Temas Capacitación' },
+        { id: 'trainingStatuses', label: 'Estados Cap.' },
+        { id: 'trainingPriorities', label: 'Prioridades Cap.' },
     ];
     
     const renderConfigList = (listKey, title) => {
@@ -146,44 +156,124 @@ const Settings = () => {
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'statuses': return renderConfigList('clientStatuses', 'Estados de Cliente');
-            case 'industries': return renderConfigList('industries', 'Rubros de Clientes');
-            case 'connections': return renderConfigList('connectionTypes', 'Tipos de Conexión');
-            case 'contracts': return renderConfigList('contractTypes', 'Tipos de Contrato');
-            case 'emissionModels': return renderConfigList('emissionModels', 'Modelos de Emisión');
-            case 'freezeReasons': return renderConfigList('freezeReasons', 'Motivos de Congelación');
-            case 'trainingTypes': return renderConfigList('trainingTypes', 'Tipos de Capacitación');
-            case 'trainingServices': return renderConfigList('trainingServices', 'Servicios de Capacitación');
-            case 'trainingTopics': return renderConfigList('trainingTopics', 'Temas de Capacitación');
-            case 'trainingStatuses': return renderConfigList('trainingStatuses', 'Estados de Capacitación');
-            case 'trainingPriorities': return renderConfigList('trainingPriorities', 'Prioridades de Capacitación');
-            case 'modules': return renderConfigList('systemModules', 'Módulos del Sistema');
-            case 'users': return renderConfigList('users', 'Responsables / Usuarios');
-            case 'checklists': return <ChecklistConfig items={data.settings.checklistData} onUpdate={(val) => updateSettings({ ...data.settings, checklistData: val })} />;
+            case 'statuses': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-4 border border-blue-500/20">
+                        <h3 className="text-lg font-semibold text-blue-300 mb-2">
+                            <i className="fas fa-users mr-2"></i>
+                            Gestión de Estados de Cliente
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Define los estados posibles para los clientes en el sistema
+                        </p>
+                    </div>
+                    {renderConfigList('clientStatuses', 'Estados de Cliente')}
+                </div>
+            );
+            case 'trainingTypes': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                        <h3 className="text-lg font-semibold text-green-300 mb-2">
+                            <i className="fas fa-graduation-cap mr-2"></i>
+                            Tipos de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Categoriza los diferentes tipos de capacitación disponibles
+                        </p>
+                    </div>
+                    {renderConfigList('trainingTypes', 'Tipos de Capacitación')}
+                </div>
+            );
+            case 'trainingServices': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
+                        <h3 className="text-lg font-semibold text-purple-300 mb-2">
+                            <i className="fas fa-cogs mr-2"></i>
+                            Servicios de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Define los servicios específicos de capacitación ofrecidos
+                        </p>
+                    </div>
+                    {renderConfigList('trainingServices', 'Servicios de Capacitación')}
+                </div>
+            );
+            case 'trainingTopics': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 rounded-lg p-4 border border-yellow-500/20">
+                        <h3 className="text-lg font-semibold text-yellow-300 mb-2">
+                            <i className="fas fa-book mr-2"></i>
+                            Temas de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Lista de temas específicos para las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingTopics', 'Temas de Capacitación')}
+                </div>
+            );
+            case 'trainingStatuses': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-indigo-500/10 to-cyan-500/10 rounded-lg p-4 border border-indigo-500/20">
+                        <h3 className="text-lg font-semibold text-indigo-300 mb-2">
+                            <i className="fas fa-tasks mr-2"></i>
+                            Estados de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Estados del progreso de las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingStatuses', 'Estados de Capacitación')}
+                </div>
+            );
+            case 'trainingPriorities': return (
+                <div className="space-y-4">
+                    <div className="bg-gradient-to-r from-red-500/10 to-pink-500/10 rounded-lg p-4 border border-red-500/20">
+                        <h3 className="text-lg font-semibold text-red-300 mb-2">
+                            <i className="fas fa-exclamation-triangle mr-2"></i>
+                            Prioridades de Capacitación
+                        </h3>
+                        <p className="text-sm text-slate-400 mb-4">
+                            Niveles de prioridad para las capacitaciones
+                        </p>
+                    </div>
+                    {renderConfigList('trainingPriorities', 'Prioridades de Capacitación')}
+                </div>
+            );
             default: return null;
         }
     };
 
     return (
         <>
-            <div className="bg-secondary p-4 md:p-6 rounded-lg shadow-lg animate-fade-in">
-                <h2 className="text-2xl font-bold text-light mb-6 border-b border-primary pb-4">Configuración del Sistema</h2>
-                <div className="flex flex-col md:flex-row gap-8">
-                    <aside className="w-full md:w-1/4 lg:w-1/5">
-                        <nav className="flex flex-col space-y-2">
+            <div className="bg-gradient-to-br from-secondary to-primary p-6 md:p-8 rounded-xl shadow-2xl animate-fade-in">
+                <div className="mb-8">
+                    <h2 className="text-3xl font-bold text-light mb-2 flex items-center">
+                        <i className="fas fa-sliders-h mr-3 text-accent"></i>
+                        Configuración de Sistema
+                    </h2>
+                    <p className="text-slate-400">Gestión de estados y parametrización de capacitaciones</p>
+                </div>
+                
+                <div className="flex flex-col lg:flex-row gap-6">
+                    <aside className="w-full lg:w-1/4">
+                        <nav className="flex flex-col space-y-2 bg-primary/30 rounded-xl p-2">
                             {tabs.map(tab => (
                                  <button 
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-2.5 text-left font-semibold text-sm rounded-lg transition-colors ${activeTab === tab.id ? 'bg-accent text-white shadow-md' : 'text-slate-300 hover:bg-primary hover:text-light'}`}
+                                    className={`px-4 py-3 text-left font-semibold text-sm rounded-lg transition-all duration-200 ${activeTab === tab.id ? 'bg-accent text-white shadow-lg transform scale-105' : 'text-slate-300 hover:bg-primary/50 hover:text-light hover:pl-6'}`}
                                 >
+                                    <i className="fas fa-chevron-right mr-2 text-xs"></i>
                                     {tab.label}
                                 </button>
                             ))}
                         </nav>
                     </aside>
-                    <main className="w-full md:w-3/4 lg:w-4/5">
-                        {renderContent()}
+                    <main className="w-full lg:w-3/4">
+                        <div className="bg-primary/20 rounded-xl p-6">
+                            {renderContent()}
+                        </div>
                     </main>
                 </div>
             </div>
