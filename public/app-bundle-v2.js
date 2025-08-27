@@ -1,6 +1,14 @@
 // PM Gestor Pro - Bundle
 // Generated automatically - Do not edit manually
 
+// Verificación preventiva contra declaraciones duplicadas
+if (typeof window.AppContent !== 'undefined') {
+    console.warn('AppContent ya está definido. Saltando redefinición para evitar errores.');
+} else {
+    // Marcar que AppContent se va a definir
+    window.APP_CONTENT_LOADING = true;
+}
+
 // React hooks destructuring
 const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
 const { createRoot } = ReactDOM;

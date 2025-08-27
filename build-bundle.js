@@ -65,6 +65,15 @@ function processFile(filePath) {
     // Remover solo export default, pero mantener definiciones de funciones/constantes
     content = content.replace(/export default.*;?\n?$/gm, '');
     
+    // Prevenir declaraciones duplicadas de AppContent (solo permitir la primera)
+    const appContentMatches = content.match(/const AppContent = \(\) => \{[\s\S]*?^\};/gm);
+    if (appContentMatches && appContentMatches.length > 1) {
+        // Mantener solo la primera declaración de AppContent
+        const firstAppContent = appContentMatches[0];
+        content = content.replace(/const AppContent = \(\) => \{[\s\S]*?^\};/gm, '');
+        content = content + '\n\n' + firstAppContent;
+    }
+    
     return content;
 }
 
@@ -108,6 +117,14 @@ const fileOrder = [
 let bundleContent = `// PM Gestor Pro - Bundle
 // Generated automatically - Do not edit manually
 
+// Verificación preventiva contra declaraciones duplicadas
+if (typeof window.AppContent !== 'undefined') {
+    console.warn('AppContent ya está definido. Saltando redefinición para evitar errores.');
+} else {
+    // Marcar que AppContent se va a definir
+    window.APP_CONTENT_LOADING = true;
+}
+
 // React hooks destructuring
 const { useState, useCallback, useContext, createContext, useEffect, useMemo } = React;
 const { createRoot } = ReactDOM;
@@ -131,6 +148,7 @@ fileOrder.forEach(filePath => {
 // Escribir el bundle
 const bundlePath = path.join(__dirname, 'public', 'app-bundle.js');
 const bundlePathV2 = path.join(__dirname, 'public', 'app-bundle-v2.js');
+
 fs.writeFileSync(bundlePath, bundleContent, 'utf8');
 fs.writeFileSync(bundlePathV2, bundleContent, 'utf8');
 
