@@ -15,6 +15,10 @@ function processFile(filePath) {
     content = content.replace(/import React.*from.*['"']react['"'];?\n?/g, '');
     content = content.replace(/import \{[^}]*\}.*from.*['"']react['"'];?\n?/g, '');
     
+    // Remover imports específicos que ya están disponibles globalmente
+    content = content.replace(/import.*\{[^}]*navItems[^}]*\}.*from.*['"'].*constants.*['"];?\n?/g, '');
+    content = content.replace(/import.*navItems.*from.*['"'].*constants.*['"];?\n?/g, '');
+    
     // Convertir imports relativos a referencias de variables globales
     content = content.replace(/import.*from\s+['"]\.\/contexts\/AppContext\.js['"];?\n?/g, '');
     content = content.replace(/import.*from\s+['"]\.\/shared\/.*['"];?\n?/g, '');

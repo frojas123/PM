@@ -949,7 +949,7 @@ const Header = ({ toggleSidebar, isSidebarCollapsed, title }) => {
 // === public/components/Sidebar.js ===
 
 
-import { navItems } from '../constants.js';
+
 
 const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
     return (
