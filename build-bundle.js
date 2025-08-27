@@ -123,6 +123,8 @@ fileOrder.forEach(filePath => {
 
 // Escribir el bundle
 const bundlePath = path.join(__dirname, 'public', 'app-bundle.js');
+const bundlePathV2 = path.join(__dirname, 'public', 'app-bundle-v2.js');
 fs.writeFileSync(bundlePath, bundleContent, 'utf8');
+fs.writeFileSync(bundlePathV2, bundleContent, 'utf8');
 
-console.log('app-bundle.js ha sido generado correctamente.');
+console.log('app-bundle.js y app-bundle-v2.js han sido generados correctamente.');
