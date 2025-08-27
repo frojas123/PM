@@ -101,7 +101,6 @@ const fileOrder = [
     'public/components/Settings.js',
     'public/components/ConfigOptionEditModal.js',
     'public/components/GeneralAnalysisModal.js',
-    'public/App.js',
     'public/index.js'
 ];
 
