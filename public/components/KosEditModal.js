@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './shared/Modal.js';
 import { useAppContext } from '../contexts/AppContext.js';
+import { FormInput } from './FormComponents.js';
 
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
 
 const KosEditModal = ({ isOpen, onClose, client }) => {

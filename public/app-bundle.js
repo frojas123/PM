@@ -1124,28 +1124,11 @@ const newClientTemplate = {
     checklistState: {},
 };
 
-const FormInput = ({ label, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
-const FormSelect = ({ label, children, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
-            {children}
-        </select>
-    </div>
-);
 
-const FormTextarea = ({ label, ...props }) => (
-     <div className="col-span-1 md:col-span-2">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
+
+
+
 
 
 const ClientEditModal = ({ isOpen, onClose, clientToEdit, onSave }) => {
@@ -1264,21 +1247,9 @@ const newTrainingTemplate = {
     priority: 'Media'
 };
 
-const FormSelect = ({ label, children, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <select {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent">
-            {children}
-        </select>
-    </div>
-);
 
-const FormInput = ({ label, ...props }) => (
-    <div className="col-span-1">
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
+
+
 
 const FormTextarea = ({ label, ...props }) => (
      <div className="col-span-1 md:col-span-2">
@@ -1758,10 +1729,7 @@ const Trainings = () => {
 Trainings;
 
 // === public/components/Calendar.js ===
-const getStatusColor = (status, settings) => {
-    const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
-    return statusConfig ? statusConfig.color : 'bg-gray-500';
-};
+
 
 const getStatusTextColor = (status, settings) => {
     const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
@@ -2394,19 +2362,9 @@ const AppPedido = () => {
 AppPedido;
 
 // === public/components/AppPedidoEditModal.js ===
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
-const FormTextarea = ({ label, ...props }) => (
-     <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <textarea {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
+
+
 
 const AppPedidoEditModal = ({ isOpen, onClose, client }) => {
     const { saveAppPedidoDetails } = useAppContext();
@@ -2542,12 +2500,7 @@ const Kos = () => {
 Kos;
 
 // === public/components/KosEditModal.js ===
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
+
 
 
 const KosEditModal = ({ isOpen, onClose, client }) => {
@@ -2600,19 +2553,9 @@ const newOptionTemplate = {
     description: '',
 };
 
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
-const FormTextarea = ({ label, ...props }) => (
-     <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
+
+
 
 
 const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title }) => {

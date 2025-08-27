@@ -1,24 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './shared/Modal.js';
+import { FormInput, FormTextarea } from './FormComponents.js';
 
 const newOptionTemplate = {
     name: '',
     description: '',
 };
 
-const FormInput = ({ label, ...props }) => (
-    <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <input {...props} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
-const FormTextarea = ({ label, ...props }) => (
-     <div>
-        <label className="block text-sm font-medium text-slate-300 mb-1">{label}</label>
-        <textarea {...props} rows={3} className="w-full bg-primary border border-slate-600 rounded-lg py-2 px-3 text-light focus:outline-none focus:ring-2 focus:ring-accent" />
-    </div>
-);
 
 
 const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title }) => {

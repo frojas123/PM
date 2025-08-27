@@ -4,16 +4,7 @@ import { useAppContext } from '../contexts/AppContext.js';
 import ClientDetailModal from './ClientDetailModal.js';
 import ClientEditModal from './ClientEditModal.js';
 import GeneralAnalysisModal from './GeneralAnalysisModal.js';
-
-const getStatusColor = (status) => {
-    switch (status) {
-        case 'Activo': return 'bg-green-500';
-        case 'Implementación': return 'bg-yellow-500';
-        case 'En Pausa': return 'bg-orange-500';
-        case 'Inactivo': return 'bg-red-500';
-        default: return 'bg-gray-500';
-    }
-};
+import { getStatusColor } from '../utils/StatusUtils.js';
 
 const Clients = () => {
     const { data, saveClient } = useAppContext();

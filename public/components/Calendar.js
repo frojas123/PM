@@ -1,16 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext.js';
-
-const getStatusColor = (status, settings) => {
-    const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
-    return statusConfig ? statusConfig.color : 'bg-gray-500';
-};
-
-const getStatusTextColor = (status, settings) => {
-    const statusConfig = settings?.trainingStatuses?.find(s => s.name === status);
-    return statusConfig ? statusConfig.textColor : 'text-white';
-};
+import { getStatusColor, getStatusTextColor } from '../utils/StatusUtils.js';
 
 const TrainingTooltip = ({ training, settings }) => {
     const statusConfig = settings?.trainingStatuses?.find(s => s.name === training.status);
