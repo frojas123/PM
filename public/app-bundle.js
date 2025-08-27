@@ -996,7 +996,7 @@ const Sidebar = ({ isCollapsed, activeView, setActiveView }) => {
 // === public/components/Dashboard.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const COLORS = ['#3498db', '#2ecc71', '#f1c40f', '#e74c3c', '#9b59b6'];
@@ -1236,7 +1236,7 @@ const Dashboard = () => {
 // === public/components/Clients.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 
@@ -1409,7 +1409,6 @@ const Clients = () => {
 // === public/components/ClientDetailModal.js ===
 
 
-import { generateClientSummary } from '../services/geminiService.js';
 
 
 const DetailItem = ({ label, value, isLink = false }) => (
@@ -1518,7 +1517,7 @@ const ClientDetailModal = ({ isOpen, onClose, client }) => {
 // === public/components/ClientEditModal.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const newClientTemplate = {
@@ -1638,7 +1637,7 @@ const ClientEditModal = ({ isOpen, onClose, clientToEdit, onSave }) => {
 // === public/components/Trainings.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const getStatusInfo = (status, settings) => {
@@ -1958,7 +1957,7 @@ const Trainings = () => {
 // === public/components/TrainingEditModal.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const newTrainingTemplate = {
@@ -2133,7 +2132,7 @@ const TrainingEditModal = ({ isOpen, onClose, trainingToEdit, onSave }) => {
 
 // === public/components/TrainingSummary.js ===
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 const TrainingSummary = ({ clientId = null, compact = false }) => {
     const { data } = useAppContext();
@@ -2309,7 +2308,7 @@ const TrainingSummary = ({ clientId = null, compact = false }) => {
 // === public/components/Calendar.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 import { getStatusColor, getStatusTextColor } from '../utils/StatusUtils.js';
 
 const TrainingTooltip = ({ training, settings }) => {
@@ -2541,7 +2540,7 @@ const Calendar = () => {
 // === public/components/Checklists.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 const ChecklistDetailView = ({ client, onBack }) => {
     const { data, updateChecklistState } = useAppContext();
@@ -2675,7 +2674,7 @@ const Checklists = () => {
 
 // === public/components/Ecommerce.js ===
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const getConfigStatusColor = (status) => {
@@ -2790,7 +2789,7 @@ const Ecommerce = () => {
 // === public/components/EcommerceEditModal.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 
@@ -2855,7 +2854,7 @@ const EcommerceEditModal = ({ isOpen, onClose, client }) => {
 
 // === public/components/AppPedido.js ===
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const AppPedido = () => {
@@ -2952,7 +2951,7 @@ const AppPedido = () => {
 // === public/components/AppPedidoEditModal.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 
@@ -3030,7 +3029,7 @@ const AppPedidoEditModal = ({ isOpen, onClose, client }) => {
 
 // === public/components/Kos.js ===
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const Kos = () => {
@@ -3116,7 +3115,7 @@ const Kos = () => {
 // === public/components/KosEditModal.js ===
 
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 
@@ -3167,7 +3166,7 @@ const KosEditModal = ({ isOpen, onClose, client }) => {
 
 // === public/components/Settings.js ===
 
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 
 const ConfigList = ({ title, items, onEdit, onAdd, onDelete }) => {
@@ -3542,7 +3541,7 @@ const ConfigOptionEditModal = ({ isOpen, onClose, optionToEdit, onSave, title })
 
 
 import { generateOverallClientAnalysis } from '../services/geminiService.js';
-import { useAppContext } from '../contexts/AppContext.js';
+
 
 const GeneralAnalysisModal = ({ isOpen, onClose }) => {
     const { data } = useAppContext();
@@ -3580,20 +3579,6 @@ const GeneralAnalysisModal = ({ isOpen, onClose }) => {
 
 
 // === public/App.js ===
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

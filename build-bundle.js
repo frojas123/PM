@@ -16,15 +16,38 @@ function processFile(filePath) {
     content = content.replace(/import \{[^}]*\}.*from.*['"']react['"'];?\n?/g, '');
     
     // Remover imports específicos que ya están disponibles globalmente
+    // navItems desde constants.js
     content = content.replace(/import.*\{[^}]*navItems[^}]*\}.*from.*['"'].*constants.*['"];?\n?/g, '');
     content = content.replace(/import.*navItems.*from.*['"'].*constants.*['"];?\n?/g, '');
     
-    // Convertir imports relativos a referencias de variables globales
-    content = content.replace(/import.*from\s+['"]\.\/contexts\/AppContext\.js['"];?\n?/g, '');
+    // useAppContext desde AppContext.js
+    content = content.replace(/import.*\{[^}]*useAppContext[^}]*\}.*from.*['"'].*AppContext.*['"];?\n?/g, '');
+    content = content.replace(/import.*useAppContext.*from.*['"'].*AppContext.*['"];?\n?/g, '');
+    
+    // Cualquier import de AppContext (también incluye AppProvider, etc.)
+    content = content.replace(/import.*from\s+['"]\.\.?\/.*contexts\/AppContext\.js['"];?\n?/g, '');
+    
+    // Card component desde shared
+    content = content.replace(/import.*\{?[^}]*Card[^}]*\}?.*from.*['"'].*shared.*Card.*['"];?\n?/g, '');
+    content = content.replace(/import.*Card.*from.*['"'].*shared.*Card.*['"];?\n?/g, '');
+    
+    // Modal component desde shared
+    content = content.replace(/import.*\{?[^}]*Modal[^}]*\}?.*from.*['"'].*shared.*Modal.*['"];?\n?/g, '');
+    content = content.replace(/import.*Modal.*from.*['"'].*shared.*Modal.*['"];?\n?/g, '');
+    
+    // Spinner component desde shared
+    content = content.replace(/import.*\{?[^}]*Spinner[^}]*\}?.*from.*['"'].*shared.*Spinner.*['"];?\n?/g, '');
+    content = content.replace(/import.*Spinner.*from.*['"'].*shared.*Spinner.*['"];?\n?/g, '');
+    
+    // Skeleton component desde shared
+    content = content.replace(/import.*\{?[^}]*Skeleton[^}]*\}?.*from.*['"'].*shared.*Skeleton.*['"];?\n?/g, '');
+    content = content.replace(/import.*Skeleton.*from.*['"'].*shared.*Skeleton.*['"];?\n?/g, '');
+    
+    // Convertir imports relativos generales
     content = content.replace(/import.*from\s+['"]\.\/shared\/.*['"];?\n?/g, '');
     content = content.replace(/import.*from\s+['"]\.\/.*['"];?\n?/g, '');
     
-    // Remover export default
+    // Remover solo export default, pero mantener definiciones de funciones/constantes
     content = content.replace(/export default.*;?\n?$/gm, '');
     
     return content;
